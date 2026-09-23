@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>Readiness — 7 Day Loop</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Readiness">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#08101d;--panel:#101a2a;--panel2:#0c1524;--line:#223047;--text:#eef4ff;--muted:#94a3b8;--green:#45d483;--green2:#163d2b;--amber:#ffc44d;--amber2:#3b2c10;--red:#ff6b76;--red2:#421d25;--blue:#66a3ff;--blue2:#172d4f;--shadow:0 14px 35px rgba(0,0,0,.24);--r:22px}
+*{box-sizing:border-box}html{background:var(--bg);color-scheme:dark}body{margin:0;background:radial-gradient(900px 450px at 50% -100px,#162642 0%,var(--bg) 55%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);min-height:100vh;padding-bottom:42px}.app{max-width:520px;margin:auto;padding:18px 16px 30px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;font-size:20px;letter-spacing:-.03em}.sub{font-size:12px;color:var(--muted);margin-top:3px}.cycle-pill{border:1px solid var(--line);background:#0d1727;border-radius:999px;padding:8px 11px;font-size:12px;color:#cbd5e1}.card{background:rgba(16,26,42,.88);border:1px solid var(--line);border-radius:var(--r);padding:17px;box-shadow:var(--shadow);margin-top:14px}.hero{background:linear-gradient(145deg,#12263a,#0e1928);border-color:#28503c}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800}.hero h1{font-size:25px;line-height:1.08;margin:7px 0 7px;letter-spacing:-.04em}.hero p{margin:0;color:#b9c5d5;font-size:13px;line-height:1.5}.status{margin-top:14px;padding:12px 13px;border-radius:16px;background:#0a1422;border:1px solid #20334b}.status strong{display:block;font-size:15px}.status span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.45}.section-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:13px}.title{font-size:16px;font-weight:800;letter-spacing:-.02em}.tiny{font-size:11px;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:13px;border:1px solid var(--line);border-radius:17px;background:#0d1726}.metric-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#cbd5e1}.metric-val{font-size:18px;font-weight:800;margin-top:7px}.bar{height:7px;background:#1c2a3e;border-radius:99px;overflow:hidden;margin-top:9px}.bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .35s}.dots{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0 8px}.dot{height:11px;border-radius:99px;background:#26364c}.dot.done{background:var(--green)}.dot.today{outline:2px solid rgba(102,163,255,.65);outline-offset:2px}.focus{border-color:#345889;background:linear-gradient(145deg,#101e33,#0d1726)}.focus-title{font-size:20px;font-weight:850;letter-spacing:-.035em;margin:7px 0}.focus-meta{font-size:12px;color:#b8c5d6;line-height:1.5}.btn{border:0;border-radius:15px;padding:13px 14px;font:inherit;font-weight:800;cursor:pointer;width:100%;transition:transform .12s,filter .12s}.btn:active{transform:scale(.985)}.btn.primary{background:var(--green);color:#07140d}.btn.secondary{background:#1b2a40;color:#e6edf8;border:1px solid #2a3c56}.btn.amber{background:var(--amber);color:#211700}.btn.red{background:#ff737d;color:#26070b}.btn:disabled{opacity:.45;cursor:not-allowed}.actions{display:grid;gap:9px;margin-top:13px}.question{padding:13px 0;border-top:1px solid #1d2a3d}.question:first-of-type{border-top:0;padding-top:0}.q-label{font-size:13px;font-weight:750;margin-bottom:9px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}.choice{border:1px solid #293a53;background:#0d1726;color:#b9c5d5;border-radius:13px;padding:11px 8px;font-weight:750;font-size:13px}.choice.selected.yes{background:#123725;border-color:#2d9d65;color:#75e6a3}.choice.selected.no{background:#3b1b22;border-color:#b54b58;color:#ff9aa2}.choice.selected.neutral{background:#19345a;border-color:#4c8ce4;color:#9ec6ff}.notice{padding:12px 13px;border-radius:15px;background:#0d1726;border:1px dashed #34465f;color:#b9c5d5;font-size:12px;line-height:1.5}.review-title{font-size:22px;font-weight:850;letter-spacing:-.04em;margin:6px 0}.callout{padding:14px;border-radius:17px;border:1px solid #2e465f;background:#0b1625;margin-top:10px}.callout.red{border-color:#5b2932;background:#28151a}.callout.green{border-color:#285b42;background:#0e261b}.callout.amber{border-color:#5b4820;background:#261e0c}.label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:850;color:var(--muted)}.callout h3{font-size:17px;margin:5px 0}.callout p{font-size:12px;line-height:1.5;color:#b8c5d6;margin:0}.compare{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:11px}.compare div{background:#0b1523;border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}.compare b{display:block;font-size:17px}.compare span{font-size:10px;color:var(--muted)}.history-item{border:1px solid var(--line);background:#0c1625;border-radius:16px;padding:13px;margin-top:9px}.history-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:800}.badge{font-size:10px;border-radius:999px;padding:4px 7px}.badge.green{background:#163c2a;color:#78e5a6}.badge.amber{background:#3c2d0e;color:#ffd873}.badge.red{background:#431d25;color:#ff9ba2}.history-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}.history-grid div{font-size:10px;color:var(--muted);background:#0a1320;border-radius:10px;padding:8px}.history-grid b{display:block;color:#e8eef8;font-size:13px;margin-top:2px}.empty{text-align:center;color:var(--muted);font-size:12px;padding:14px 0}.hidden{display:none!important}.footer{text-align:center;color:#62728a;font-size:10px;padding:18px 0}.modal{position:fixed;inset:0;background:rgba(2,7,14,.78);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;padding:12px;z-index:30}.sheet{width:min(520px,100%);background:#0f1a2a;border:1px solid #2a3b54;border-radius:24px;padding:18px;box-shadow:0 20px 70px #000}.sheet h2{margin:0 0 7px;font-size:20px}.sheet p{font-size:12px;color:var(--muted);line-height:1.5}.select,.input{width:100%;background:#091321;color:#edf3fd;border:1px solid #2b3d56;border-radius:13px;padding:12px;font:inherit;font-size:13px;margin-top:8px}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#eaf5ee;color:#092012;padding:10px 14px;border-radius:999px;font-size:12px;font-weight:800;box-shadow:var(--shadow);z-index:50;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;bottom:28px}@media(max-width:380px){.grid{grid-template-columns:1fr}.compare{grid-template-columns:1fr 1fr}.compare div:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div><div class="brand">Health & Readiness</div><div class="sub">7-Day Improvement Loop</div></div>
+    <div id="cyclePill" class="cycle-pill">Siklus —</div>
+  </header>
+
+  <section class="card hero">
+    <div class="eyebrow">Hari ini</div>
+    <h1 id="todayStatus">Belum check-in</h1>
+    <p id="todayMessage">Isi check-in singkat untuk mengetahui kondisi hari ini.</p>
+    <div class="status"><strong id="readinessMini">Belum ada data</strong><span id="readinessDetail">Empat indikator • kurang dari 30 detik</span></div>
+  </section>
+
+  <section id="focusCard" class="card focus hidden">
+    <div class="eyebrow">Fokus 7 hari • 1 perubahan</div>
+    <div id="focusTitle" class="focus-title">—</div>
+    <div id="focusMeta" class="focus-meta">—</div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div class="title">Check-in hari ini</div><div id="dateText" class="tiny">—</div></div>
+    <div id="questions"></div>
+    <div class="actions"><button id="saveBtn" class="btn primary" onclick="saveToday()">Simpan check-in</button></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><div class="title">Progress minggu ini</div><div id="cycleRange" class="tiny">Mulai setelah check-in pertama</div></div><div id="daysText" class="tiny">0/7 hari</div></div>
+    <div id="dots" class="dots"></div>
+    <div id="metrics" class="grid"></div>
+  </section>
+
+  <section id="reviewCard" class="card hidden"></section>
+
+  <section class="card">
+    <div class="section-head"><div class="title">Riwayat perbaikan</div><div id="historyCount" class="tiny">0 eksperimen</div></div>
+    <div id="history"></div>
+  </section>
+
+  <div class="footer">Data tersimpan di perangkat ini. Tracker membantu menemukan pola, bukan diagnosis medis.</div>
+</div>
+
+<div id="rootModal" class="modal hidden">
+  <div class="sheet">
+    <div class="eyebrow">Eksperimen belum membaik</div>
+    <h2>Cari penyebab sebelum mengubah target</h2>
+    <p>Pilih satu penyebab utama, lalu buat modifikasi kecil untuk 7 hari berikutnya.</p>
+    <select id="cause" class="select">
+      <option>Target terlalu sulit</option><option>Lupa / tidak sadar</option><option>Jadwal sekolah / aktivitas</option><option>Lingkungan tidak mendukung</option><option>Energi atau mood rendah</option><option>Target kurang jelas</option><option>Faktor lain</option>
+    </select>
+    <input id="modification" class="input" placeholder="Contoh: ubah target menjadi lebih realistis...">
+    <div class="actions"><button class="btn amber" onclick="submitRootCause()">Simpan & lanjutkan siklus</button><button class="btn secondary" onclick="closeModal()">Batal</button></div>
+  </div>
+</div>
+<div id="toast" class="toast">Tersimpan</div>
+
+<script>
+'use strict';
+const KEY='readiness_pareto_v3';
+const METAS={
+ sleep:{name:'Tidur',label:'Tidur cukup & teratur',impact:3},
+ food:{name:'Makan',label:'Makan teratur & beragam',impact:3},
+ sport:{name:'Aktivitas',label:'Aktivitas sesuai kebutuhan',impact:2},
+ mood:{name:'Energi & mood',label:'Energi & mood cukup baik',impact:3}
+};
+const QUESTIONS=[
+ {key:'sleep',label:'Tidur cukup & teratur?',yes:'Ya',no:'Tidak'},
+ {key:'food',label:'Makan teratur & beragam?',yes:'Ya',no:'Tidak'},
+ {key:'sport',label:'Aktivitas / olahraga sesuai kebutuhan?',yes:'Sesuai',no:'Tidak'},
+ {key:'mood',label:'Energi & mood cukup baik?',yes:'Baik',no:'Kurang'}
+];
+let data=load();
+let input={sleep:1,food:1,sport:1,mood:1};
+let pendingReview=null;
+function fresh(){return {version:3,cycle:null,experiments:[],settings:{}}}
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.version===3)return x;return migrate(x)}catch(e){return fresh()}}
+function migrate(old){
+ const d=fresh(); if(!old)return d;
+ if(Array.isArray(old.logs)&&old.logs.length){const dates=old.logs.map(x=>x.date).sort();d.cycle={id:cryptoId(),startDate:dates[0],logs:old.logs,focus:old.activeExperiment?{problemKey:old.activeExperiment.problemKey,title:old.activeExperiment.title,baselinePct:old.activeExperiment.baselinePct,startDate:old.activeExperiment.startDate}:null,closed:false};}
+ if(Array.isArray(old.historyExperiments))d.experiments=old.historyExperiments.map(x=>({id:cryptoId(),...x}));
+ persist(d);return d;
+}
+function cryptoId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function persist(x=data){localStorage.setItem(KEY,JSON.stringify(x));}
+function today(){return localDate(new Date())}
+function localDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function addDays(s,n){const [y,m,d]=s.split('-').map(Number),x=new Date(y,m-1,d);x.setDate(x.getDate()+n);return localDate(x)}
+function fmt(s){if(!s)return '—';return new Date(s+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}
+function dateDiff(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)}
+function currentLog(){return data.cycle?.logs?.find(x=>x.date===today())||null}
+function ensureCycle(){if(!data.cycle){data.cycle={id:cryptoId(),startDate:today(),logs:[],focus:null,closed:false};persist()}}
+function cycleEnd(){return data.cycle?addDays(data.cycle.startDate,6):null}
+function daysElapsed(){return data.cycle?Math.min(7,Math.max(1,dateDiff(data.cycle.startDate,today())+1)):0}
+function availableDays(){return data.cycle?.logs?.length||0}
+function cycleReady(){return !!data.cycle&&today()>=cycleEnd()}
+function metrics(logs){const out={};for(const k of Object.keys(METAS))out[k]=logs.length?Math.round(logs.reduce((a,x)=>a+(x[k]?1:0),0)/logs.length*100):0;return out}
+function countGood(logs,k){return logs.reduce((a,x)=>a+(x[k]?1:0),0)}
+function render(){
+ ensureCycle(); const log=currentLog();
+ document.getElementById('dateText').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'short'});
+ document.getElementById('cyclePill').textContent=`Siklus ${daysElapsed()}/7`;
+ document.getElementById('cycleRange').textContent=`${fmt(data.cycle.startDate)} — ${fmt(cycleEnd())}`;
+ renderQuestions(log); renderToday(log); renderFocus(); renderProgress(); renderReview(); renderHistory();
+}
+function renderQuestions(log){const base=log||input;document.getElementById('questions').innerHTML=QUESTIONS.map(q=>`<div class="question"><div class="q-label">${q.label}</div><div class="choices"><button class="choice ${base[q.key]===1?'selected yes':''}" onclick="pick('${q.key}',1)">${q.yes}</button><button class="choice ${base[q.key]===0?'selected no':''}" onclick="pick('${q.key}',0)">${q.no}</button></div></div>`).join('')}
+function pick(k,v){input[k]=v;renderQuestions(currentLog())}
+function renderToday(log){const s=document.getElementById('todayStatus'),m=document.getElementById('todayMessage'),mini=document.getElementById('readinessMini'),det=document.getElementById('readinessDetail');if(!log){s.textContent='Belum check-in';s.style.color='var(--amber)';m.textContent='Isi empat pertanyaan singkat untuk membaca kondisi hari ini.';mini.textContent='0/4 tersimpan';det.textContent='Check-in harian • kurang dari 30 detik';return}const good=Object.keys(METAS).reduce((a,k)=>a+log[k],0);if(good===4){s.textContent='Kondisi siap';s.style.color='var(--green)';m.textContent='Semua indikator hari ini tercatat baik.'}else if(good>=2){s.textContent='Perlu sedikit perhatian';s.style.color='var(--amber)';m.textContent='Ada beberapa indikator yang bisa diperhatikan hari ini.'}else{s.textContent='Prioritaskan pemulihan';s.style.color='var(--red)';m.textContent='Beberapa indikator sedang kurang baik. Sesuaikan beban dengan kondisi.'}mini.textContent=`${good}/4 indikator baik`;det.textContent='Ini adalah snapshot hari ini, bukan diagnosis.'}
+function renderFocus(){const c=document.getElementById('focusCard'),f=data.cycle?.focus;if(!f){c.classList.add('hidden');return}c.classList.remove('hidden');document.getElementById('focusTitle').textContent=f.title;document.getElementById('focusMeta').textContent=`Baseline ${f.baselinePct}% • 1 perubahan • ${fmt(f.startDate)}–${fmt(addDays(f.startDate,6))}`}
+function renderProgress(){const logs=data.cycle.logs;const elapsed=daysElapsed();document.getElementById('daysText').textContent=`${logs.length}/7 data`;const dots=document.getElementById('dots');dots.innerHTML='';for(let i=0;i<7;i++){const day=addDays(data.cycle.startDate,i),has=logs.some(x=>x.date===day),todayMark=day===today()?' today':'';dots.innerHTML+=`<i class="dot ${has?'done':''}${todayMark}"></i>`}const st=metrics(logs);document.getElementById('metrics').innerHTML=Object.entries(METAS).map(([k,v])=>`<div class="metric"><div class="metric-top"><span>${v.name}</span><span>${st[k]}%</span></div><div class="metric-val">${countGood(logs,k)}/${logs.length||0}</div><div class="bar"><i style="width:${st[k]}%"></i></div></div>`).join('')}
+function saveToday(){ensureCycle();const t=today();const entry={date:t,...input};const idx=data.cycle.logs.findIndex(x=>x.date===t);if(idx>=0)data.cycle.logs[idx]=entry;else data.cycle.logs.push(entry);data.cycle.logs.sort((a,b)=>a.date.localeCompare(b.date));persist();toast('Check-in hari ini tersimpan');render();}
+function priority(logs){
+ const st=metrics(logs);let candidates=Object.keys(METAS).map(k=>{const fail=100-st[k];const ease=st[k]>=80?0.4:st[k]>=60?0.8:1;return {key:k,pct:st[k],fail,score:fail*METAS[k].impact*ease}}).filter(x=>x.fail>0);if(!candidates.length)return null;candidates.sort((a,b)=>b.score-a.score||a.pct-b.pct);return candidates[0]}
+function reviewHtml(){
+ const logs=data.cycle.logs, st=metrics(logs),p=priority(logs),f=data.cycle.focus;let html=`<div class="section-head"><div><div class="eyebrow">Weekly review</div><div class="review-title">7 hari → 1 keputusan</div></div><div class="tiny">${logs.length}/7 data</div></div>`;
+ if(logs.length<4)html+=`<div class="notice">Data minggu ini baru ${logs.length}/7 hari. Tetap tampilkan pola, tetapi anggap hasil sebagai sinyal awal, bukan kesimpulan kuat.</div>`;
+ html+=`<div class="grid">${Object.entries(METAS).map(([k,v])=>`<div class="metric"><div class="metric-top"><span>${v.name}</span><span>${st[k]}%</span></div><div class="metric-val">${countGood(logs,k)}/${logs.length}</div><div class="bar"><i style="width:${st[k]}%"></i></div></div>`).join('')}</div>`;
+ if(f){const result=st[f.problemKey];const delta=result-f.baselinePct;const verdict=evaluate(delta,f.baselinePct);html+=`<div class="callout ${verdict.cls}"><div class="label">Hasil eksperimen minggu ini</div><h3>${f.title}</h3><p>Baseline ${f.baselinePct}% → hasil ${result}%</p><div class="compare"><div><b>${f.baselinePct}%</b><span>sebelum</span></div><div><b>${result}%</b><span>sesudah</span></div><div><b>${delta>=0?'+':''}${delta} pt</b><span>perubahan</span></div></div><div style="margin-top:10px;font-size:13px;font-weight:800">${verdict.text}</div></div>`;
+   if(verdict.kind==='success')html+=`<div class="callout green"><div class="label">Keputusan</div><h3>Pertahankan perubahan</h3><p>Kamu tidak perlu menambah fokus baru hanya karena siklus selesai. Konsistensi lebih penting daripada menumpuk target.</p><div class="actions"><button class="btn primary" onclick="finishExperiment(true)">Pertahankan & mulai siklus berikutnya</button></div></div>`;
+   else html+=`<div class="callout amber"><div class="label">Keputusan</div><h3>Cari penyebab → modifikasi</h3><p>Jangan mengganti tujuan secara acak. Cari satu hambatan utama, lalu ubah strateginya.</p><div class="actions"><button class="btn amber" onclick="openRootCause()">Cari penyebab & modifikasi</button></div></div>`;
+   return html+`</div>`;
+ }
+ if(!cycleReady())html+=`<div class="callout"><div class="label">Belum waktunya evaluasi</div><h3>Bangun data dulu</h3><p>Review utama muncul pada akhir 7 hari kalender. Fokus sekarang: check-in singkat dan jalankan fokus aktif bila ada.</p></div>`;
+ else if(!p)html+=`<div class="callout green"><div class="label">Temuan minggu ini</div><h3>Semua indikator relatif stabil</h3><p>Tidak ada masalah dominan. Tidak perlu memaksakan perubahan baru. Pertahankan pola yang sudah berjalan.</p><div class="actions"><button class="btn primary" onclick="startNeutralCycle()">Pertahankan & mulai siklus berikutnya</button></div></div>`;
+ else html+=`<div class="callout red"><div class="label">Masalah terbesar yang layak diuji</div><h3>${METAS[p.key].name} — ${p.pct}% baik</h3><p>Muncul sebagai area dengan masalah paling sering dan masih realistis diperbaiki dalam satu siklus.</p></div><div class="callout green"><div class="label">1 fokus minggu berikutnya</div><h3>${METAS[p.key].label}</h3><p>Gunakan satu perubahan perilaku yang spesifik. Jangan memperbaiki banyak area sekaligus.</p><div class="actions"><button class="btn amber" onclick="startFocus('${p.key}')">Kunci fokus 7 hari</button></div></div>`;
+ return html+`</div>`;
+}
+function renderReview(){const card=document.getElementById('reviewCard');if(!data.cycle){card.classList.add('hidden');return}if(data.cycle.focus && !cycleReady()){const f=data.cycle.focus;const st=metrics(data.cycle.logs);const pct=st[f.problemKey]||0;const elapsed=daysElapsed();card.classList.remove('hidden');card.innerHTML=`<div class=\"section-head\"><div><div class=\"eyebrow\">Eksperimen aktif</div><div class=\"review-title\">Jalankan satu perubahan</div></div><div class=\"tiny\">${elapsed}/7 hari</div></div><div class=\"callout green\"><div class=\"label\">Fokus minggu ini</div><h3>${f.title}</h3><p>Baseline ${f.baselinePct}% • saat ini ${pct}% • jangan menambah fokus lain.</p><div class=\"dots\" style=\"margin-bottom:0\">${Array.from({length:7},(_,i)=>`<i class=\"dot ${i<elapsed?'done':''}\"></i>`).join('')}</div></div><div class=\"notice\" style=\"margin-top:10px\">Evaluasi final muncul pada hari ke-7. Sampai saat itu, tugasmu hanya menjalankan satu perubahan dan tetap check-in.</div></div>`;return}if(!cycleReady()&&!data.cycle.focus){card.classList.add('hidden');return}card.classList.remove('hidden');card.innerHTML=reviewHtml()}
+function evaluate(delta,baseline){if(delta>=10)return{kind:'success',cls:'green',text:'✓ MEMBAIK — perubahan terlihat'};if(delta>=0)return{kind:'unclear',cls:'amber',text:'→ BELUM JELAS — perubahan kecil'};return{kind:'fail',cls:'red',text:'✕ BELUM BERHASIL — kondisi menurun'}}
+function startFocus(k){if(!cycleReady())return;const logs=data.cycle.logs,st=metrics(logs);data.cycle.focus={id:cryptoId(),problemKey:k,title:`Perbaiki ${METAS[k].name.toLowerCase()}`,baselinePct:st[k],startDate:addDays(cycleEnd(),1),strategy:'Satu perubahan perilaku yang realistis selama 7 hari'};archiveCycle(false);toast('Fokus dikunci. Siklus baru dimulai besok.');render()}
+function startNeutralCycle(){archiveCycle(true);toast('Siklus berikutnya dimulai besok.');render()}
+function archiveCycle(keepFocus){const old=data.cycle;data.cycle={id:cryptoId(),startDate:addDays(old.startDate,7),logs:[],focus:keepFocus?null:old.focus,closed:false};persist()}
+function finishExperiment(success){const f=data.cycle.focus;if(!f)return;const st=metrics(data.cycle.logs),delta=st[f.problemKey]-f.baselinePct;data.experiments.unshift({id:cryptoId(),title:f.title,baselinePct:f.baselinePct,resultPct:st[f.problemKey],deltaPct:delta,status:'Membaik',date:today(),rootCause:'',modification:''});data.cycle={id:cryptoId(),startDate:addDays(today(),1),logs:[],focus:null,closed:false};persist();toast('Eksperimen disimpan. Fokus dipertahankan.');render()}
+function openRootCause(){document.getElementById('rootModal').classList.remove('hidden')}
+function closeModal(){document.getElementById('rootModal').classList.add('hidden')}
+function submitRootCause(){const f=data.cycle.focus;if(!f)return;const cause=document.getElementById('cause').value,mod=document.getElementById('modification').value.trim()||'Buat target lebih realistis dan mudah dilakukan.';const st=metrics(data.cycle.logs),delta=st[f.problemKey]-f.baselinePct;data.experiments.unshift({id:cryptoId(),title:f.title,baselinePct:f.baselinePct,resultPct:st[f.problemKey],deltaPct:delta,status:'Dimodifikasi',date:today(),rootCause:cause,modification:mod});data.cycle={id:cryptoId(),startDate:addDays(today(),1),logs:[],focus:{id:cryptoId(),problemKey:f.problemKey,title:f.title,baselinePct:st[f.problemKey],startDate:addDays(today(),1),strategy:mod},closed:false};persist();closeModal();toast('Penyebab dan modifikasi tersimpan');render()}
+function renderHistory(){const h=document.getElementById('history');document.getElementById('historyCount').textContent=`${data.experiments.length} eksperimen`;if(!data.experiments.length){h.innerHTML='<div class="empty">Belum ada eksperimen selesai. Selesaikan satu siklus untuk membangun riwayat.</div>';return}h.innerHTML=data.experiments.slice(0,8).map(x=>{const cls=x.status==='Membaik'?'green':x.status==='Dimodifikasi'?'amber':'red';return `<div class="history-item"><div class="history-head"><span>${x.title}</span><span class="badge ${cls}">${x.status}</span></div><div class="history-grid"><div>Sebelum<b>${x.baselinePct}%</b></div><div>Sesudah<b>${x.resultPct}%</b></div><div>Perubahan<b>${x.deltaPct>=0?'+':''}${x.deltaPct} pt</b></div></div>${x.rootCause?`<div class="tiny" style="margin-top:9px">Penyebab: ${x.rootCause}<br>Modifikasi: ${x.modification}</div>`:''}</div>`}).join('')}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1700)}
+render();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
