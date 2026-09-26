@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Readiness">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1220">
+<title>Readiness — 7 Day Loop</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topnav">
+  <div class="brand">Health &amp; <span>Readiness</span></div>
+  <div class="tabs">
+    <a href="index.html" class="active">Check-in</a>
+    <a href="latihan.html">Latihan</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="card" id="cycleCard">
+    <div class="hero-row">
+      <div>
+        <div class="muted">Siklus 7 hari · 1 perubahan</div>
+        <div class="hero-num" id="cycleDayNum">—</div>
+      </div>
+      <span class="badge badge-green" id="cycleBadge">Belum mulai</span>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <div class="card" id="checkinCard">
+    <h2 id="checkinTitle">Check-in hari ini</h2>
+    <p class="muted">Empat indikator · kurang dari 30 detik</p>
+
+    <div class="field">
+      <label>Tidur semalam</label>
+      <div class="seg" data-key="tidur">
+        <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Energi</label>
+      <div class="seg" data-key="energi">
+        <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Stres</label>
+      <div class="seg" data-key="stres">
+        <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Motivasi</label>
+      <div class="seg" data-key="motivasi">
+        <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Catatan (opsional)</label>
+      <textarea id="catatan" placeholder="Apa yang memengaruhi hari ini?"></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="saveBtn">Simpan check-in</button>
+  </div>
+
+  <div class="card" id="workoutPreview">
+    <h2>Latihan hari ini</h2>
+    <div id="wpBody" class="muted">Memuat…</div>
+    <div style="margin-top:12px;">
+      <a href="latihan.html" class="btn btn-blue" style="text-decoration:none;">Buka halaman latihan →</a>
+    </div>
+  </div>
+
+  <div class="card" id="progressCard">
+    <h2>Progress minggu ini</h2>
+    <p class="muted" id="progressSub">Mulai setelah check-in pertama</p>
+    <div class="hero-num"><span id="progressCount">0</span><span class="muted" style="font-size:16px;">/7 hari</span></div>
+  </div>
+
+  <div class="card" id="historyCard">
+    <h2>Riwayat perbaikan</h2>
+    <p class="muted" id="expCount">0 eksperimen</p>
+    <div id="expList"></div>
+  </div>
+
+  <div class="card" id="rootCauseCard" style="display:none;">
+    <h2>Cari penyebab sebelum mengubah target</h2>
+    <p class="muted">Pilih satu penyebab utama, lalu buat modifikasi kecil untuk 7 hari berikutnya.</p>
+    <div class="reason-grid" id="reasonGrid">
+      <button data-r="Target terlalu sulit">Target terlalu sulit</button>
+      <button data-r="Lupa / tidak sadar">Lupa / tidak sadar</button>
+      <button data-r="Jadwal sekolah / aktivitas">Jadwal sekolah / aktivitas</button>
+      <button data-r="Lingkungan tidak mendukung">Lingkungan tidak mendukung</button>
+      <button data-r="Energi atau mood rendah">Energi atau mood rendah</button>
+      <button data-r="Target kurang jelas">Target kurang jelas</button>
+      <button data-r="Faktor lain">Faktor lain</button>
+    </div>
+    <textarea id="reasonNote" placeholder="Catatan singkat (opsional)"></textarea>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-secondary" id="cancelReason">Batal</button>
+      <button class="btn btn-primary" id="saveReason">Simpan &amp; lanjutkan siklus</button>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Data tersimpan di perangkat ini. Tracker membantu menemukan pola, bukan diagnosis medis.
+  </div>
+</div>
+
+<script src="store.js"></script>
+<script src="home.js"></script>
+</body>
+</html>
