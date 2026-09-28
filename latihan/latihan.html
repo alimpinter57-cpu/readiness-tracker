@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0f1a">
+<link rel="manifest" href="../manifest.webmanifest">
+<title>Readiness — Latihan</title>
+<link rel="stylesheet" href="../Store/style.css">
+</head>
+<body>
+<div class="app-shell">
+<header class="topnav">
+  <a class="brand" href="../index.html" aria-label="Readiness home">
+    <span class="brand-mark">R</span>
+    <span>Readiness<small>7 DAY LOOP</small></span>
+  </a>
+  <nav class="tabs" aria-label="Navigasi utama">
+    <a href="../index.html">Check-in</a>
+    <a href="latihan.html" class="active">Latihan</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="hero-card card">
+    <div class="hero-glow"></div>
+    <div class="hero-row">
+      <div>
+        <div class="eyebrow">PROGRAM LATIHAN · 8 MINGGU</div>
+        <div class="hero-num" id="weekNum">—</div>
+        <div class="hero-caption" id="weekNote">Siapkan program sesuai kondisi hari ini.</div>
+      </div>
+      <span class="badge badge-blue" id="weekBadge">—</span>
+    </div>
+    <div id="weekControls" style="margin-top:18px"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <div><span class="section-kicker">01</span><h2>Pilih hari</h2></div>
+    </div>
+    <div class="day-strip" id="dayStrip"></div>
+    <div id="recoBanner" class="banner banner-blue" style="display:none"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <div><span class="section-kicker">02</span><h2>Sesi latihan</h2></div>
+    </div>
+    <div id="dayBadgeWrap"></div>
+    <div id="exerciseList"></div>
+    <div id="restNote" class="empty" style="display:none">Hari recovery. Tidak ada latihan wajib—fokus pada pemulihan dan tidur.</div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">03</span><h2>Pemanasan</h2></div></div>
+    <p id="warmupList" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">04</span><h2>Aturan program</h2></div></div>
+    <div id="rulesList"></div>
+  </section>
+
+  <footer class="footer-note">Checklist latihan tersimpan di perangkat ini. Program tidak mengubah data check-in.</footer>
+</main>
+</div>
+<script src="../Store/store.js"></script>
+<script src="../Store/latihan.js"></script>
+</body>
+</html>
