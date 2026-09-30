@@ -186,7 +186,6 @@ const Store = (() => {
     const logs = getHabitLogs();
     if (!logs[dateStr]) logs[dateStr] = {};
     logs[dateStr][habitId] = value;
-    saveHabitLog._last = logs;
     write(HABIT_KEYS.LOGS, logs);
   };
   const getHabitValue = (dateStr, habitId) => {
@@ -212,5 +211,6 @@ const Store = (() => {
     PROGRAM, DAY_ORDER, WEEK_NOTES, WARMUP, RULES,
     getWorkoutStart, setWorkoutStart, currentWeek,
     getWorkoutLog, getLogFor, todayLog, toggleExercise, weekCompletionCount,
+    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue,
   };
 })();
