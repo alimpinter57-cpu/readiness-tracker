@@ -151,6 +151,7 @@
   let editingHabitId = null;
   let habitIcon = HABIT_ICONS[0][0];
   let habitColor = HABIT_COLORS[0];
+  const runningTimers = {};
 
   function renderHabitBuilder(){
     const colors = document.getElementById('habitColors');
@@ -199,8 +200,14 @@
       if(h.type==='binary'){
         const b=document.createElement('button'); b.className='habit-check '+(value===true?'done':''); b.textContent=value===true?'✓':'○'; b.onclick=()=>{Store.setHabitValue(h.id,value===true?false:true);renderHabits();}; control.appendChild(b);
       }else if(h.type==='duration'){
-        control.innerHTML=`<div class="duration-input"><input type="number" min="0" placeholder="0" value="${value??''}" data-hid="${h.id}"><span>menit</span></div>`;
-        const input=control.querySelector('input'); input.onchange=()=>{Store.setHabitValue(h.id,Math.max(0,Number(input.value)||0));renderHabits();};
+        const mins=Number(value)||0, hh=Math.floor(mins/60), mm=mins%60, running=runningTimers[h.id];
+        control.innerHTML='<div class="duration-control"><div class="duration-input"><input type="number" min="0" placeholder="0" value="'+hh+'" aria-label="Jam"><span>j</span><input type="number" min="0" max="59" placeholder="0" value="'+mm+'" aria-label="Menit"><span>m</span></div><button class="timer-btn '+(running?'running':'')+'" data-timer="'+h.id+'">'+(running?'Berhenti':'Mulai timer')+'</button></div>';
+        const inputs=control.querySelectorAll('input');
+        inputs.forEach(i=>i.onchange=()=>{const hours=Math.max(0,Number(inputs[0].value)||0), minutes=Math.min(59,Math.max(0,Number(inputs[1].value)||0));Store.setHabitValue(h.id,hours*60+minutes);renderHabits();});
+        control.querySelector('.timer-btn').onclick=()=>{
+          if(runningTimers[h.id]){ const elapsed=Math.max(0,Math.round((Date.now()-runningTimers[h.id])/60000)); const next=(Number(value)||0)+elapsed; delete runningTimers[h.id]; Store.setHabitValue(h.id,next); renderHabits(); }
+          else { runningTimers[h.id]=Date.now(); renderHabits(); }
+        };
       }else{
         control.innerHTML=`<div class="quantity-input"><input type="number" min="0" placeholder="0" value="${value??''}" data-hid="${h.id}"><span>${escapeHtml(h.unit||'kali')}</span></div>`;
         const input=control.querySelector('input'); input.onchange=()=>{Store.setHabitValue(h.id,Math.max(0,Number(input.value)||0));renderHabits();};
