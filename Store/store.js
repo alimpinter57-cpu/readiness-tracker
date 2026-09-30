@@ -174,6 +174,36 @@ const Store = (() => {
     return getWorkoutLog().filter(w => w.date >= startStr && (w.done || []).length > 0).length;
   };
 
+  // ---- Custom habits (additive data layer; existing keys/data remain untouched) ----
+  const HABIT_KEYS = {
+    HABITS: 'readiness:habits',
+    LOGS: 'readiness:habitLogs',
+  };
+  const getHabits = () => read(HABIT_KEYS.HABITS, []);
+  const saveHabits = (list) => write(HABIT_KEYS.HABITS, list);
+  const getHabitLogs = () => read(HABIT_KEYS.LOGS, {});
+  const saveHabitLog = (dateStr, habitId, value) => {
+    const logs = getHabitLogs();
+    if (!logs[dateStr]) logs[dateStr] = {};
+    logs[dateStr][habitId] = value;
+    saveHabitLog._last = logs;
+    write(HABIT_KEYS.LOGS, logs);
+  };
+  const getHabitValue = (dateStr, habitId) => {
+    const logs = getHabitLogs();
+    return logs[dateStr] && logs[dateStr][habitId] !== undefined ? logs[dateStr][habitId] : null;
+  };
+  const addHabit = (habit) => {
+    const list = getHabits();
+    list.push({ id: 'h-' + Date.now() + '-' + Math.random().toString(36).slice(2,7), createdAt: todayStr(), ...habit });
+    saveHabits(list);
+  };
+  const updateHabit = (id, patch) => {
+    saveHabits(getHabits().map(h => h.id === id ? { ...h, ...patch } : h));
+  };
+  const deleteHabit = (id) => saveHabits(getHabits().filter(h => h.id !== id));
+  const setHabitValue = (habitId, value) => saveHabitLog(todayStr(), habitId, value);
+
   return {
     todayStr, todayDayName,
     getCheckins, todayCheckin, saveCheckin,
