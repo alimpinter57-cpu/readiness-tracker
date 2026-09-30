@@ -1,153 +1,46 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Readiness">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a0f1a">
-<link rel="manifest" href="manifest.webmanifest">
-<title>Readiness — 7 Day Loop</title>
-<link rel="stylesheet" href="Store/style.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1a"><link rel="manifest" href="manifest.webmanifest">
+<title>Readiness — Habit Dashboard</title><link rel="stylesheet" href="Store/style.css">
 </head>
-<body>
-<div class="app-shell">
+<body><div class="app-shell">
 <header class="topnav">
-  <a class="brand" href="index.html" aria-label="Readiness home">
-    <span class="brand-mark">R</span>
-    <span>Readiness<small>7 DAY LOOP</small></span>
-  </a>
-  <nav class="tabs" aria-label="Navigasi utama">
-    <a href="index.html" class="active">Check-in</a>
-    <a href="latihan/latihan.html">Latihan</a>
-  </nav>
+<a class="brand" href="index.html"><span class="brand-mark">R</span><span>Readiness<small>HABIT SYSTEM</small></span></a>
+<nav class="tabs"><a href="index.html" class="active">Hari ini</a><a href="latihan/latihan.html">Workout</a></nav>
 </header>
-
 <main class="wrap">
-  <section class="hero-card card" id="cycleCard">
-    <div class="hero-glow"></div>
-    <div class="hero-row">
-      <div>
-        <div class="eyebrow">SIKLUS 7 HARI · 1 PERUBAHAN</div>
-        <div class="hero-num" id="cycleDayNum">—</div>
-        <div class="hero-caption">Bangun konsistensi lewat langkah kecil.</div>
-      </div>
-      <span class="badge badge-green" id="cycleBadge">Belum mulai</span>
-    </div>
-    <div class="timeline" id="timeline"></div>
-  </section>
+<section class="hero-card card">
+<div class="hero-glow"></div>
+<div class="dashboard-head"><div><div class="eyebrow" id="todayLabel">HARI INI</div><h1 id="dayName">—</h1><p class="hero-caption">Jaga ritme. Satu kebiasaan selesai tetap dihitung.</p></div>
+<div class="progress-ring" id="progressRing"><strong id="dailyPercent">0%</strong><span>hari ini</span></div></div>
+<div class="week-strip" id="weekStrip"></div>
+</section>
 
-  <section class="card" id="checkinCard">
-    <div class="section-head">
-      <div><span class="section-kicker">01</span><h2 id="checkinTitle">Check-in hari ini</h2></div>
-      <span class="micro-badge">~30 detik</span>
-    </div>
-    <p class="muted">Catat kondisi hari ini. Tidak perlu sempurna—yang penting konsisten.</p>
+<section class="card">
+<div class="section-head"><div><span class="section-kicker">KEBIASAAN HARI INI</span><h2 id="habitSummary">0 kebiasaan</h2></div><button class="mini-action" id="addHabitBtn">＋ Tambah</button></div>
+<div id="habitList" class="habit-list"></div>
+<div id="habitEmpty" class="habit-empty"><div class="habit-empty-icon">✦</div><strong>Belum ada kebiasaan</strong><span>Buat sistemmu sendiri. Mulai dari satu hal yang paling penting.</span><button class="btn btn-primary" id="emptyAddHabit">＋ Buat kebiasaan</button></div>
+</section>
 
-    <div class="field-grid">
-      <div class="field"><label>Tidur semalam</label><div class="seg" data-key="tidur"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
-      <div class="field"><label>Energi</label><div class="seg" data-key="energi"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
-      <div class="field"><label>Stres</label><div class="seg" data-key="stres"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
-      <div class="field"><label>Motivasi</label><div class="seg" data-key="motivasi"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
-    </div>
-    <div class="field"><label>Catatan <span>(opsional)</span></label><textarea id="catatan" placeholder="Apa yang paling memengaruhi hari ini?"></textarea></div>
-    <button class="btn btn-primary" id="saveBtn">Simpan check-in <span>→</span></button>
-  </section>
+<section class="card workout-card">
+<div class="section-head"><div><span class="section-kicker">WORKOUT</span><h2>Latihan hari ini</h2></div><a class="micro-link" href="latihan/latihan.html">Kelola →</a></div>
+<div id="workoutToday" class="muted">Belum ada sesi custom untuk hari ini.</div>
+</section>
 
-  <section class="card workout-card" id="workoutPreview">
-    <div class="section-head">
-      <div><span class="section-kicker">02</span><h2>Latihan hari ini</h2></div>
-      <span class="badge badge-blue">Hari ini</span>
-    </div>
-    <div id="wpBody" class="muted loading-state">Memuat…</div>
-    <a href="latihan/latihan.html" class="btn btn-blue">Buka halaman latihan <span>→</span></a>
-  </section>
-
-  <div class="split-grid">
-    <section class="card stat-card" id="progressCard">
-      <div class="section-head"><div><span class="section-kicker">03</span><h2>Progress</h2></div></div>
-      <p class="muted" id="progressSub">Mulai setelah check-in pertama</p>
-      <div class="stat-number"><span id="progressCount">0</span><small>/7 hari</small></div>
-    </section>
-    <section class="card stat-card" id="historyCard">
-      <div class="section-head"><div><span class="section-kicker">04</span><h2>Riwayat</h2></div></div>
-      <p class="muted" id="expCount">0 eksperimen</p>
-      <div id="expList"></div>
-    </section>
-  </div>
-
-  <section class="card" id="rootCauseCard" style="display:none;">
-    <div class="section-head"><div><span class="section-kicker">EVALUASI</span><h2>Cari penyebab sebelum mengubah target</h2></div></div>
-    <p class="muted">Pilih satu penyebab utama, lalu buat modifikasi kecil untuk 7 hari berikutnya.</p>
-    <div class="reason-grid" id="reasonGrid">
-      <button data-r="Target terlalu sulit">Target terlalu sulit</button><button data-r="Lupa / tidak sadar">Lupa / tidak sadar</button>
-      <button data-r="Jadwal sekolah / aktivitas">Jadwal sekolah / aktivitas</button><button data-r="Lingkungan tidak mendukung">Lingkungan tidak mendukung</button>
-      <button data-r="Energi atau mood rendah">Energi atau mood rendah</button><button data-r="Target kurang jelas">Target kurang jelas</button><button data-r="Faktor lain">Faktor lain</button>
-    </div>
-    <textarea id="reasonNote" placeholder="Catatan singkat (opsional)"></textarea>
-    <div class="btn-row"><button class="btn btn-secondary" id="cancelReason">Batal</button><button class="btn btn-primary" id="saveReason">Simpan & lanjutkan siklus</button></div>
-  </section>
-
-
-  <section class="card habits-card" id="habitsCard">
-    <div class="section-head">
-      <div><span class="section-kicker">05</span><h2>Kebiasaan saya</h2></div>
-      <button class="mini-action" id="addHabitBtn">＋ Tambah</button>
-    </div>
-    <p class="muted">Buat kebiasaan sesuai kebutuhanmu. Setiap kebiasaan bisa punya ikon, warna, tipe input, target, dan aturan sendiri.</p>
-    <div id="habitList" class="habit-list"></div>
-    <div id="habitEmpty" class="habit-empty">
-      <div class="habit-empty-icon">✦</div>
-      <strong>Belum ada kebiasaan custom</strong>
-      <span>Mulai dari satu kebiasaan kecil yang benar-benar ingin kamu ukur.</span>
-      <button class="btn btn-secondary" id="emptyAddHabit">Buat kebiasaan pertama</button>
-    </div>
-  </section>
-
-  <div class="modal-backdrop" id="habitModal" hidden>
-    <div class="habit-modal" role="dialog" aria-modal="true" aria-labelledby="habitModalTitle">
-      <div class="modal-head">
-        <div><span class="section-kicker">KEBIASAAN BARU</span><h2 id="habitModalTitle">Buat kebiasaan</h2></div>
-        <button class="icon-close" id="closeHabitModal" aria-label="Tutup">×</button>
-      </div>
-      <div class="habit-form">
-        <label>Nama kebiasaan<input id="habitName" maxlength="60" placeholder="Contoh: Baca buku"></label>
-        <div class="form-row">
-          <label>Tipe input
-            <select id="habitType">
-              <option value="binary">Ya / Tidak</option>
-              <option value="duration">Durasi (Waktu)</option>
-              <option value="quantity">Kuantitas (Hitungan)</option>
-            </select>
-          </label>
-          <label>Target <span id="habitTargetHint">—</span><input id="habitTarget" type="number" min="0" step="1" placeholder="Opsional"></label>
-        </div>
-        <div class="form-row">
-          <label>Satuan <input id="habitUnit" maxlength="20" placeholder="menit / ml / kali"></label>
-          <label>Aturan pribadi <input id="habitRule" maxlength="120" placeholder="Contoh: sebelum tidur"></label>
-        </div>
-        <div>
-          <label class="form-label">Warna</label>
-          <div class="choice-row" id="habitColors"></div>
-        </div>
-        <div>
-          <label class="form-label">Ikon</label>
-          <div class="icon-grid" id="habitIcons"></div>
-        </div>
-        <div class="habit-preview" id="habitPreview"></div>
-      </div>
-      <div class="btn-row modal-actions">
-        <button class="btn btn-secondary" id="cancelHabit">Batal</button>
-        <button class="btn btn-primary" id="saveHabit">Simpan kebiasaan</button>
-      </div>
-    </div>
-  </div>
-  <footer class="footer-note">Data tersimpan di perangkat ini. Tracker membantu menemukan pola, bukan diagnosis medis.</footer>
-</main>
-</div>
-<script src="Store/store.js"></script>
-<script src="Store/home.js"></script>
-</body>
-</html>
+<div class="modal-backdrop" id="habitModal" hidden><div class="habit-modal" role="dialog" aria-modal="true">
+<div class="modal-head"><div><span class="section-kicker">KEBIASAAN</span><h2 id="habitModalTitle">Buat kebiasaan</h2></div><button class="icon-close" id="closeHabitModal">×</button></div>
+<div class="habit-form">
+<label>Nama<input id="habitName" maxlength="60" placeholder="Contoh: Minum air"></label>
+<div class="form-row"><label>Tipe input<select id="habitType"><option value="binary">Ya / Tidak</option><option value="duration">Durasi (Waktu)</option><option value="quantity">Kuantitas (Hitungan)</option></select></label><label>Target <span id="habitTargetHint"></span><input id="habitTarget" type="number" min="0"></label></div>
+<div class="form-row"><label>Satuan<input id="habitUnit" maxlength="20" placeholder="ml / kali / halaman"></label><label>Aturan<input id="habitRule" maxlength="120" placeholder="Contoh: setelah Subuh"></label></div>
+<div><label class="form-label">Jadwal</label><div class="schedule-grid" id="habitSchedule"></div></div>
+<div><label class="form-label">Warna</label><div class="choice-row" id="habitColors"></div></div>
+<div><label class="form-label">Ikon</label><div class="icon-grid" id="habitIcons"></div></div>
+<div class="habit-preview" id="habitPreview"></div>
+</div><div class="btn-row modal-actions"><button class="btn btn-secondary" id="cancelHabit">Batal</button><button class="btn btn-primary" id="saveHabit">Simpan</button></div>
+</div></div>
+<footer class="footer-note">Semua data kebiasaan tersimpan di perangkat ini. Sistem ini membantu membangun pola, bukan diagnosis medis.</footer>
+</main></div>
+<script src="Store/store.js"></script><script src="Store/home.js"></script></body></html>
