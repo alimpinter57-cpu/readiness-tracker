@@ -90,6 +90,60 @@
     <div class="btn-row"><button class="btn btn-secondary" id="cancelReason">Batal</button><button class="btn btn-primary" id="saveReason">Simpan & lanjutkan siklus</button></div>
   </section>
 
+
+  <section class="card habits-card" id="habitsCard">
+    <div class="section-head">
+      <div><span class="section-kicker">05</span><h2>Kebiasaan saya</h2></div>
+      <button class="mini-action" id="addHabitBtn">＋ Tambah</button>
+    </div>
+    <p class="muted">Buat kebiasaan sesuai kebutuhanmu. Setiap kebiasaan bisa punya ikon, warna, tipe input, target, dan aturan sendiri.</p>
+    <div id="habitList" class="habit-list"></div>
+    <div id="habitEmpty" class="habit-empty">
+      <div class="habit-empty-icon">✦</div>
+      <strong>Belum ada kebiasaan custom</strong>
+      <span>Mulai dari satu kebiasaan kecil yang benar-benar ingin kamu ukur.</span>
+      <button class="btn btn-secondary" id="emptyAddHabit">Buat kebiasaan pertama</button>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" id="habitModal" hidden>
+    <div class="habit-modal" role="dialog" aria-modal="true" aria-labelledby="habitModalTitle">
+      <div class="modal-head">
+        <div><span class="section-kicker">KEBIASAAN BARU</span><h2 id="habitModalTitle">Buat kebiasaan</h2></div>
+        <button class="icon-close" id="closeHabitModal" aria-label="Tutup">×</button>
+      </div>
+      <div class="habit-form">
+        <label>Nama kebiasaan<input id="habitName" maxlength="60" placeholder="Contoh: Baca buku"></label>
+        <div class="form-row">
+          <label>Tipe input
+            <select id="habitType">
+              <option value="binary">Ya / Tidak</option>
+              <option value="duration">Durasi (Waktu)</option>
+              <option value="quantity">Kuantitas (Hitungan)</option>
+            </select>
+          </label>
+          <label>Target <span id="habitTargetHint">—</span><input id="habitTarget" type="number" min="0" step="1" placeholder="Opsional"></label>
+        </div>
+        <div class="form-row">
+          <label>Satuan <input id="habitUnit" maxlength="20" placeholder="menit / ml / kali"></label>
+          <label>Aturan pribadi <input id="habitRule" maxlength="120" placeholder="Contoh: sebelum tidur"></label>
+        </div>
+        <div>
+          <label class="form-label">Warna</label>
+          <div class="choice-row" id="habitColors"></div>
+        </div>
+        <div>
+          <label class="form-label">Ikon</label>
+          <div class="icon-grid" id="habitIcons"></div>
+        </div>
+        <div class="habit-preview" id="habitPreview"></div>
+      </div>
+      <div class="btn-row modal-actions">
+        <button class="btn btn-secondary" id="cancelHabit">Batal</button>
+        <button class="btn btn-primary" id="saveHabit">Simpan kebiasaan</button>
+      </div>
+    </div>
+  </div>
   <footer class="footer-note">Data tersimpan di perangkat ini. Tracker membantu menemukan pola, bukan diagnosis medis.</footer>
 </main>
 </div>
