@@ -1,72 +1,15 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a0f1a">
-<link rel="manifest" href="../manifest.webmanifest">
-<title>Readiness — Latihan</title>
-<link rel="stylesheet" href="../Store/style.css">
-</head>
-<body>
-<div class="app-shell">
-<header class="topnav">
-  <a class="brand" href="../index.html" aria-label="Readiness home">
-    <span class="brand-mark">R</span>
-    <span>Readiness<small>7 DAY LOOP</small></span>
-  </a>
-  <nav class="tabs" aria-label="Navigasi utama">
-    <a href="../index.html">Check-in</a>
-    <a href="latihan.html" class="active">Latihan</a>
-  </nav>
-</header>
-
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0f1a"><link rel="manifest" href="../manifest.webmanifest"><title>Readiness — Smart Workout</title><link rel="stylesheet" href="../Store/style.css"></head>
+<body><div class="app-shell"><header class="topnav"><a class="brand" href="../index.html"><span class="brand-mark">R</span><span>Readiness<small>HABIT SYSTEM</small></span></a><nav class="tabs"><a href="../index.html">Hari ini</a><a class="active" href="latihan.html">Workout</a></nav></header>
 <main class="wrap">
-  <section class="hero-card card">
-    <div class="hero-glow"></div>
-    <div class="hero-row">
-      <div>
-        <div class="eyebrow">PROGRAM LATIHAN · 8 MINGGU</div>
-        <div class="hero-num" id="weekNum">—</div>
-        <div class="hero-caption" id="weekNote">Siapkan program sesuai kondisi hari ini.</div>
-      </div>
-      <span class="badge badge-blue" id="weekBadge">—</span>
-    </div>
-    <div id="weekControls" style="margin-top:18px"></div>
-  </section>
+<section class="hero-card card"><div class="hero-glow"></div><div class="dashboard-head"><div><div class="eyebrow">SMART WORKOUT</div><h1>Jadwal latihanmu</h1><p class="hero-caption">Paste jadwal mentah. Readiness mengubahnya menjadi sesi yang bisa langsung dijalankan.</p></div><span class="badge badge-blue">Parser</span></div></section>
 
-  <section class="card">
-    <div class="section-head">
-      <div><span class="section-kicker">01</span><h2>Pilih hari</h2></div>
-    </div>
-    <div class="day-strip" id="dayStrip"></div>
-    <div id="recoBanner" class="banner banner-blue" style="display:none"></div>
-  </section>
+<section class="card parser-card"><div class="section-head"><div><span class="section-kicker">01 · IMPORT</span><h2>Smart Workout Parser</h2></div></div><p class="muted">Contoh: <b>Senin Push Day: Bench Press 3x10 RPE 8 rest 90s</b></p><textarea id="rawWorkout" class="parser-input" placeholder="Senin Push Day: Bench Press 3x10 RPE 8 rest 90s&#10;Incline Dumbbell Press 3x12 20kg rest 90s&#10;Triceps Pushdown 3x15 RPE 7"></textarea><button class="btn btn-primary" id="parseBtn">Parse jadwal →</button><div id="parseStatus" class="muted"></div></section>
 
-  <section class="card">
-    <div class="section-head">
-      <div><span class="section-kicker">02</span><h2>Sesi latihan</h2></div>
-    </div>
-    <div id="dayBadgeWrap"></div>
-    <div id="exerciseList"></div>
-    <div id="restNote" class="empty" style="display:none">Hari recovery. Tidak ada latihan wajib—fokus pada pemulihan dan tidur.</div>
-  </section>
+<section class="card" id="previewCard" style="display:none"><div class="section-head"><div><span class="section-kicker">02 · PREVIEW</span><h2>Hasil parsing</h2></div><button class="mini-action" id="savePlan">Simpan jadwal</button></div><div id="parsePreview"></div></section>
 
-  <section class="card">
-    <div class="section-head"><div><span class="section-kicker">03</span><h2>Pemanasan</h2></div></div>
-    <p id="warmupList" class="muted"></p>
-  </section>
+<section class="card"><div class="section-head"><div><span class="section-kicker">03 · JADWAL</span><h2>Workout tersimpan</h2></div></div><div id="planList"></div><div id="planEmpty" class="habit-empty"><div class="habit-empty-icon">🏋️</div><strong>Belum ada workout custom</strong><span>Import jadwal olahraga di atas untuk membuat sesi interaktif.</span></div></section>
 
-  <section class="card">
-    <div class="section-head"><div><span class="section-kicker">04</span><h2>Aturan program</h2></div></div>
-    <div id="rulesList"></div>
-  </section>
-
-  <footer class="footer-note">Checklist latihan tersimpan di perangkat ini. Program tidak mengubah data check-in.</footer>
-</main>
-</div>
-<script src="../Store/store.js"></script>
-<script src="../Store/latihan.js"></script>
-</body>
-</html>
+<section class="card" id="sessionCard" style="display:none"><div class="section-head"><div><span class="section-kicker">04 · SESSION</span><h2 id="sessionTitle">Sesi</h2></div><span id="sessionStatus" class="badge badge-green">Normal</span></div><div id="sessionMeta" class="muted"></div><div id="sessionExercises"></div><div class="volume-box"><span>Total volume</span><strong id="totalVolume">0</strong><small>set × repetisi × beban</small></div></section>
+</main></div><div id="restTimer" class="rest-timer" hidden><span>REST</span><strong id="restValue">90</strong><button id="stopRest">×</button></div>
+<script src="../Store/store.js"></script><script src="../Store/latihan.js"></script></body></html>
