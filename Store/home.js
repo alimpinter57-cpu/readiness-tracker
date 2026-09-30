@@ -1,243 +1,74 @@
 (() => {
-  const DAY_LABELS = ['H1','H2','H3','H4','H5','H6','H7'];
-  let picked = {};
+const ICONS=[['👟','Sepatu'],['💧','Air'],['🍽️','Makanan'],['🌙','Bulan'],['💊','Pil'],['🧘','Meditasi'],['📖','Buku'],['✍️','Pena'],['🧠','Otak'],['❤️','Hati'],['⏰','Jam'],['💻','Laptop'],['🎯','Target'],['🎒','Tas'],['👛','Dompet'],['☕','Cangkir'],['🧹','Sapu'],['🐾','Hewan'],['🎨','Seni'],['❌','Silang']];
+const COLORS=['green','blue','purple','amber','red','cyan'];
+const DAYS=[['Sen','1'],['Sel','2'],['Rab','3'],['Kam','4'],['Jum','5'],['Sab','6'],['Min','0']];
+let editing=null, icon=ICONS[0][0], color=COLORS[0], schedule=['1','2','3','4','5','6','0'], timers={};
 
-  function renderCycle() {
-    const start = Store.getCycleStart();
-    const dayIdx = Store.cycleDayIndex();
-    const count = Store.cycleCheckinCount();
-    document.getElementById('cycleDayNum').textContent = start ? `Hari ${dayIdx + 1}` : 'Belum mulai';
-    document.getElementById('cycleBadge').textContent = start ? `${count}/7 check-in` : 'Belum ada data';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function date(){return Store.todayStr();}
+function jsDay(){return String(new Date().getDay());}
+function todayHabits(){return Store.getHabits().filter(h=>!h.schedule||h.schedule.includes(jsDay()));}
+function typeLabel(t){return t==='duration'?'Durasi':t==='quantity'?'Kuantitas':'Ya / Tidak';}
 
-    const tl = document.getElementById('timeline');
-    tl.innerHTML = '';
-    const checkins = Store.getCheckins();
-    for (let i = 0; i < 7; i++) {
-      const node = document.createElement('div');
-      node.className = 'tl-node';
-      const dot = document.createElement('div');
-      dot.className = 'tl-dot';
-      if (start) {
-        const d = new Date(start);
-        d.setDate(d.getDate() + i);
-        const ds = Store.todayStr(d);
-        if (checkins.some(c => c.date === ds)) dot.classList.add('done');
-        if (i === dayIdx) dot.classList.add('today');
-      }
-      node.appendChild(dot);
-      const lbl = document.createElement('div');
-      lbl.textContent = DAY_LABELS[i];
-      node.appendChild(lbl);
-      tl.appendChild(node);
-    }
+function renderHeader(){
+ const now=new Date(), names=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+ $('dayName').textContent=names[now.getDay()];
+ $('todayLabel').textContent=now.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+ const strip=$('weekStrip');strip.innerHTML='';
+ for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);const done=Store.getHabits().filter(h=>(!h.schedule||h.schedule.includes(String(d.getDay())))).filter(h=>Store.getHabitValue(Store.todayStr(d),h.id)!==null).length;const total=Store.getHabits().filter(h=>!h.schedule||h.schedule.includes(String(d.getDay()))).length;const b=document.createElement('div');b.className='week-day '+(i===0?'current':'');b.innerHTML='<b>'+['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()]+'</b><span>'+ (total?Math.round(done/total*100):0)+'%</span>';strip.appendChild(b);}
+}
 
-    document.getElementById('progressCount').textContent = count;
-    document.getElementById('progressSub').textContent = start
-      ? (count >= 7 ? 'Siklus selesai — waktunya evaluasi' : `Konsisten ${count} dari 7 hari`)
-      : 'Mulai setelah check-in pertama';
-
-    // Offer root-cause tool if cycle finished but hasn't clearly improved
-    document.getElementById('rootCauseCard').style.display = (start && count >= 7) ? 'block' : 'none';
+function renderHabits(){
+ const habits=todayHabits(), list=$('habitList'), empty=$('habitEmpty');list.innerHTML='';empty.style.display=habits.length?'none':'flex';
+ let completed=0;
+ habits.forEach(h=>{
+  const v=Store.getHabitValue(date(),h.id), target=Number(h.target)||0;
+  const done=h.type==='binary'?v===true:(target>0&&Number(v)>=target);
+  if(done)completed++;
+  const row=document.createElement('article');row.className='habit-row '+(h.color||'green');
+  const iconEl=document.createElement('div');iconEl.className='habit-icon '+(h.color||'green');iconEl.textContent=h.icon||'🎯';
+  const info=document.createElement('div');info.className='habit-info';
+  const meta=h.rule||typeLabel(h.type)+(target?' · target '+target+' '+(h.unit||''):'');
+  info.innerHTML='<strong>'+esc(h.name)+'</strong><small>'+esc(meta)+'</small>';
+  const control=document.createElement('div');control.className='habit-control';
+  if(h.type==='binary'){
+   const b=document.createElement('button');b.className='habit-check '+(done?'done':'');b.textContent=done?'✓':'○';b.title=done?'Selesai':'Belum selesai';b.onclick=()=>{Store.setHabitValue(h.id,!done);renderAll();};control.appendChild(b);
+  } else if(h.type==='duration'){
+   const mins=Number(v)||0,hh=Math.floor(mins/60),mm=mins%60,running=timers[h.id];
+   control.innerHTML='<div class="duration-control"><div class="duration-input"><input value="'+hh+'" min="0" type="number"><span>j</span><input value="'+mm+'" min="0" max="59" type="number"><span>m</span></div><button class="timer-btn '+(running?'running':'')+'">'+(running?'Berhenti':'Timer')+'</button></div>';
+   const inputs=control.querySelectorAll('input');inputs.forEach(x=>x.onchange=()=>{Store.setHabitValue(h.id,Math.max(0,Number(inputs[0].value)||0)*60+Math.min(59,Math.max(0,Number(inputs[1].value)||0)));renderAll();});
+   control.querySelector('.timer-btn').onclick=()=>{if(running){const elapsed=Math.max(1,Math.round((Date.now()-running)/60000));delete timers[h.id];Store.setHabitValue(h.id,(Number(v)||0)+elapsed);}else timers[h.id]=Date.now();renderAll();};
+  } else {
+   control.innerHTML='<div class="quantity-control"><button>−</button><strong>'+Number(v||0)+'</strong><button>+</button><span>' + esc(h.unit||'kali')+'</span></div>';
+   const [minus,plus]=control.querySelectorAll('button');minus.onclick=()=>{Store.setHabitValue(h.id,Math.max(0,Number(v||0)-1));renderAll()};plus.onclick=()=>{Store.setHabitValue(h.id,Number(v||0)+1);renderAll()};
   }
-
-  function renderCheckinForm() {
-    const existing = Store.todayCheckin();
-    if (existing) {
-      document.getElementById('checkinTitle').textContent = 'Check-in hari ini — tersimpan';
-      ['tidur','energi','stres','motivasi'].forEach(k => {
-        const seg = document.querySelector(`.seg[data-key="${k}"]`);
-        seg.querySelectorAll('button').forEach(b => {
-          b.classList.toggle('on', Number(b.dataset.v) === existing[k]);
-        });
-      });
-      document.getElementById('catatan').value = existing.catatan || '';
-      document.getElementById('saveBtn').textContent = 'Perbarui check-in';
-    }
-  }
-
-  function renderExperiments() {
-    const list = Store.getExperiments();
-    document.getElementById('expCount').textContent = `${list.length} eksperimen`;
-    const box = document.getElementById('expList');
-    box.innerHTML = '';
-    if (list.length === 0) {
-      box.innerHTML = '<div class="empty">Eksperimen belum berjalan</div>';
-      return;
-    }
-    list.slice(0, 5).forEach(e => {
-      const row = document.createElement('div');
-      row.style.padding = '10px 0';
-      row.style.borderBottom = '1px solid var(--border)';
-      row.innerHTML = `<div style="font-weight:600;font-size:13px;">${e.reason}</div>
-        <div class="muted">${e.date}${e.note ? ' · ' + e.note : ''}</div>`;
-      box.appendChild(row);
-    });
-  }
-
-  function renderWorkoutPreview() {
-    const dayName = Store.todayDayName();
-    const day = Store.PROGRAM[dayName];
-    const log = Store.todayLog();
-    const doneCount = log ? (log.done || []).length : 0;
-    const total = day.exercises.length;
-    const week = Store.currentWeek();
-    const box = document.getElementById('wpBody');
-    box.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span class="badge ${day.type === 'rest' ? 'badge-amber' : 'badge-blue'}">${dayName} · ${day.label}</span>
-        ${week ? `<span class="muted">Minggu ${week}/8</span>` : ''}
-      </div>
-      <div class="muted">${doneCount}/${total} gerakan ditandai selesai hari ini</div>
-    `;
-  }
-
-  // Segmented pickers
-  document.querySelectorAll('.seg').forEach(seg => {
-    const key = seg.dataset.key;
-    seg.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        seg.querySelectorAll('button').forEach(b => b.classList.remove('on'));
-        btn.classList.add('on');
-        picked[key] = Number(btn.dataset.v);
-      });
-    });
-  });
-
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    const existing = Store.todayCheckin() || {};
-    const data = {
-      tidur: picked.tidur ?? existing.tidur ?? 3,
-      energi: picked.energi ?? existing.energi ?? 3,
-      stres: picked.stres ?? existing.stres ?? 3,
-      motivasi: picked.motivasi ?? existing.motivasi ?? 3,
-      catatan: document.getElementById('catatan').value.trim(),
-    };
-    Store.saveCheckin(data);
-    renderCycle();
-    renderCheckinForm();
-    renderWorkoutPreview();
-  });
-
-  // Root-cause picker
-  let chosenReason = null;
-  document.querySelectorAll('#reasonGrid button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#reasonGrid button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      chosenReason = btn.dataset.r;
-    });
-  });
-  document.getElementById('saveReason').addEventListener('click', () => {
-    if (!chosenReason) return;
-    Store.addExperiment(chosenReason, document.getElementById('reasonNote').value.trim());
-    Store.resetCycle();
-    chosenReason = null;
-    document.getElementById('reasonNote').value = '';
-    document.querySelectorAll('#reasonGrid button').forEach(b => b.classList.remove('on'));
-    renderCycle();
-    renderExperiments();
-  });
-  document.getElementById('cancelReason').addEventListener('click', () => {
-    document.getElementById('rootCauseCard').style.display = 'none';
-  });
-
-  // ---- Custom habits UI ----
-  const HABIT_ICONS = [
-    ['👟','Sepatu'],['💧','Air'],['🍽️','Makanan'],['🌙','Bulan'],['💊','Pil'],['🧘','Meditasi'],
-    ['📖','Buku'],['✍️','Pena'],['🧠','Otak'],['❤️','Hati'],['⏰','Jam'],['💻','Laptop'],
-    ['🎯','Target'],['🎒','Tas'],['👛','Dompet'],['☕','Cangkir'],['🧹','Sapu'],['🐾','Hewan'],['🎨','Seni'],['❌','Silang']
-  ];
-  const HABIT_COLORS = ['green','blue','purple','amber','red','cyan'];
-  let editingHabitId = null;
-  let habitIcon = HABIT_ICONS[0][0];
-  let habitColor = HABIT_COLORS[0];
-  const runningTimers = {};
-
-  function renderHabitBuilder(){
-    const colors = document.getElementById('habitColors');
-    const icons = document.getElementById('habitIcons');
-    if (!colors || !icons) return;
-    colors.innerHTML = HABIT_COLORS.map(c => `<button type="button" class="color-choice ${c} ${c===habitColor?'on':''}" data-color="${c}" aria-label="Warna ${c}"></button>`).join('');
-    icons.innerHTML = HABIT_ICONS.map(([icon,label]) => `<button type="button" class="icon-choice ${icon===habitIcon?'on':''}" data-icon="${icon}" title="${label}" aria-label="${label}">${icon}</button>`).join('');
-    colors.querySelectorAll('button').forEach(b=>b.onclick=()=>{habitColor=b.dataset.color;renderHabitBuilder();renderHabitPreview();});
-    icons.querySelectorAll('button').forEach(b=>b.onclick=()=>{habitIcon=b.dataset.icon;renderHabitBuilder();renderHabitPreview();});
-    renderHabitPreview();
-  }
-  function renderHabitPreview(){
-    const p=document.getElementById('habitPreview'); if(!p)return;
-    const name=document.getElementById('habitName').value.trim()||'Kebiasaan baru';
-    p.innerHTML=`<span class="habit-icon ${habitColor}">${habitIcon}</span><div><strong>${name}</strong><small>Pratinjau kebiasaan</small></div>`;
-  }
-  function openHabitModal(habit=null){
-    editingHabitId=habit?.id||null; habitIcon=habit?.icon||HABIT_ICONS[0][0]; habitColor=habit?.color||HABIT_COLORS[0];
-    document.getElementById('habitModalTitle').textContent=habit?'Edit kebiasaan':'Buat kebiasaan';
-    document.getElementById('habitName').value=habit?.name||'';
-    document.getElementById('habitType').value=habit?.type||'binary';
-    document.getElementById('habitTarget').value=habit?.target ?? '';
-    document.getElementById('habitUnit').value=habit?.unit||'';
-    document.getElementById('habitRule').value=habit?.rule||'';
-    document.getElementById('habitModal').hidden=false;
-    document.body.classList.add('modal-open');
-    updateHabitTypeUI(); renderHabitBuilder(); document.getElementById('habitName').focus();
-  }
-  function closeHabitModal(){document.getElementById('habitModal').hidden=true;document.body.classList.remove('modal-open');editingHabitId=null;}
-  function updateHabitTypeUI(){
-    const type=document.getElementById('habitType').value, unit=document.getElementById('habitUnit'), target=document.getElementById('habitTarget');
-    document.getElementById('habitTargetHint').textContent=type==='binary'?'(tidak diperlukan)':type==='duration'?'(menit)':'(jumlah)';
-    unit.placeholder=type==='duration'?'menit':'contoh: ml, kali, halaman';
-    target.disabled=type==='binary'; if(type==='binary')target.value='';
-  }
-  function renderHabits(){
-    const habits=Store.getHabits(), list=document.getElementById('habitList'), empty=document.getElementById('habitEmpty'); if(!list)return;
-    empty.style.display=habits.length?'none':'flex'; list.innerHTML='';
-    habits.forEach(h=>{
-      const value=Store.getHabitValue(Store.todayStr(),h.id);
-      const row=document.createElement('article'); row.className=`habit-row ${h.color||'green'}`;
-      const icon=document.createElement('div'); icon.className=`habit-icon ${h.color||'green'}`; icon.textContent=h.icon||'🎯';
-      const info=document.createElement('div'); info.className='habit-info';
-      info.innerHTML=`<strong>${escapeHtml(h.name)}</strong><small>${escapeHtml(h.rule||habitTypeLabel(h.type))}</small>`;
-      const control=document.createElement('div'); control.className='habit-control';
-      if(h.type==='binary'){
-        const b=document.createElement('button'); b.className='habit-check '+(value===true?'done':''); b.textContent=value===true?'✓':'○'; b.onclick=()=>{Store.setHabitValue(h.id,value===true?false:true);renderHabits();}; control.appendChild(b);
-      }else if(h.type==='duration'){
-        const mins=Number(value)||0, hh=Math.floor(mins/60), mm=mins%60, running=runningTimers[h.id];
-        control.innerHTML='<div class="duration-control"><div class="duration-input"><input type="number" min="0" placeholder="0" value="'+hh+'" aria-label="Jam"><span>j</span><input type="number" min="0" max="59" placeholder="0" value="'+mm+'" aria-label="Menit"><span>m</span></div><button class="timer-btn '+(running?'running':'')+'" data-timer="'+h.id+'">'+(running?'Berhenti':'Mulai timer')+'</button></div>';
-        const inputs=control.querySelectorAll('input');
-        inputs.forEach(i=>i.onchange=()=>{const hours=Math.max(0,Number(inputs[0].value)||0), minutes=Math.min(59,Math.max(0,Number(inputs[1].value)||0));Store.setHabitValue(h.id,hours*60+minutes);renderHabits();});
-        control.querySelector('.timer-btn').onclick=()=>{
-          if(runningTimers[h.id]){ const elapsed=Math.max(0,Math.round((Date.now()-runningTimers[h.id])/60000)); const next=(Number(value)||0)+elapsed; delete runningTimers[h.id]; Store.setHabitValue(h.id,next); renderHabits(); }
-          else { runningTimers[h.id]=Date.now(); renderHabits(); }
-        };
-      }else{
-        control.innerHTML=`<div class="quantity-input"><input type="number" min="0" placeholder="0" value="${value??''}" data-hid="${h.id}"><span>${escapeHtml(h.unit||'kali')}</span></div>`;
-        const input=control.querySelector('input'); input.onchange=()=>{Store.setHabitValue(h.id,Math.max(0,Number(input.value)||0));renderHabits();};
-      }
-      const actions=document.createElement('div'); actions.className='habit-actions';
-      const edit=document.createElement('button'); edit.textContent='Edit'; edit.onclick=()=>openHabitModal(h);
-      const del=document.createElement('button'); del.textContent='×'; del.title='Hapus'; del.onclick=()=>{if(confirm('Hapus kebiasaan ini? Riwayat data kebiasaan tidak ikut dihapus.')){Store.deleteHabit(h.id);renderHabits();}};
-      actions.append(edit,del); row.append(icon,info,control,actions); list.appendChild(row);
-    });
-  }
-  function habitTypeLabel(t){return t==='duration'?'Durasi':t==='quantity'?'Kuantitas':'Ya / Tidak';}
-  function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
-  document.getElementById('addHabitBtn')?.addEventListener('click',()=>openHabitModal());
-  document.getElementById('emptyAddHabit')?.addEventListener('click',()=>openHabitModal());
-  document.getElementById('closeHabitModal')?.addEventListener('click',closeHabitModal);
-  document.getElementById('cancelHabit')?.addEventListener('click',closeHabitModal);
-  document.getElementById('habitName')?.addEventListener('input',renderHabitPreview);
-  document.getElementById('habitType')?.addEventListener('change',updateHabitTypeUI);
-  document.getElementById('habitModal')?.addEventListener('click',e=>{if(e.target.id==='habitModal')closeHabitModal();});
-  document.getElementById('saveHabit')?.addEventListener('click',()=>{
-    const name=document.getElementById('habitName').value.trim(), type=document.getElementById('habitType').value;
-    if(!name){document.getElementById('habitName').focus();return;}
-    const habit={name,type,target:type==='binary'?null:Math.max(0,Number(document.getElementById('habitTarget').value)||0),unit:document.getElementById('habitUnit').value.trim(),rule:document.getElementById('habitRule').value.trim(),color:habitColor,icon:habitIcon};
-    if(editingHabitId) Store.updateHabit(editingHabitId,habit); else Store.addHabit(habit);
-    closeHabitModal(); renderHabits();
-  });
-  renderHabits();
-
-  renderCycle();
-  renderCheckinForm();
-  renderExperiments();
-  renderWorkoutPreview();
+  const actions=document.createElement('div');actions.className='habit-actions';const e=document.createElement('button');e.textContent='Edit';e.onclick=()=>openModal(h);const del=document.createElement('button');del.textContent='×';del.onclick=()=>{if(confirm('Hapus kebiasaan ini?')){Store.deleteHabit(h.id);renderAll()}};actions.append(e,del);
+  row.append(iconEl,info,control,actions);list.appendChild(row);
+ });
+ $('habitSummary').textContent=habits.length?completed+' / '+habits.length+' selesai':'0 kebiasaan';
+ $('dailyPercent').textContent=(habits.length?Math.round(completed/habits.length*100):0)+'%';
+ $('progressRing').style.setProperty('--progress',(habits.length?completed/habits.length:0)*360+'deg');
+ renderWorkoutToday();
+}
+function renderWorkoutToday(){
+ const plans=Store.getWorkoutPlans(), today=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()], p=plans.find(x=>x.day===today);
+ $('workoutToday').innerHTML=p?'<strong>'+esc(p.name)+'</strong><br><span class="muted">'+p.exercises.length+' gerakan · '+esc(p.status||'Normal')+'</span>':'Belum ada sesi custom untuk '+today+'. <a href="latihan/latihan.html">Buat jadwal →</a>';
+}
+function renderBuilder(){
+ $('habitColors').innerHTML=COLORS.map(c=>'<button class="color-choice '+c+' '+(c===color?'on':'')+'" data-c="'+c+'"></button>').join('');
+ $('habitIcons').innerHTML=ICONS.map(x=>'<button class="icon-choice '+(x[0]===icon?'on':'')+'" data-i="'+x[0]+'" title="'+x[1]+'">'+x[0]+'</button>').join('');
+ $('habitSchedule').innerHTML=DAYS.map(x=>'<button class="schedule-choice '+(schedule.includes(x[1])?'on':'')+'" data-d="'+x[1]+'">'+x[0]+'</button>').join('');
+ document.querySelectorAll('.color-choice').forEach(b=>b.onclick=()=>{color=b.dataset.c;renderBuilder()});
+ document.querySelectorAll('.icon-choice').forEach(b=>b.onclick=()=>{icon=b.dataset.i;renderBuilder()});
+ document.querySelectorAll('.schedule-choice').forEach(b=>b.onclick=()=>{schedule=schedule.includes(b.dataset.d)?schedule.filter(x=>x!==b.dataset.d):[...schedule,b.dataset.d];renderBuilder()});
+}
+function updateType(){const t=$('habitType').value;$('habitTarget').disabled=t==='binary';$('habitUnit').placeholder=t==='duration'?'menit':'ml / kali / halaman';$('habitTargetHint').textContent=t==='binary'?'':'target';}
+function openModal(h=null){editing=h?.id||null;icon=h?.icon||ICONS[0][0];color=h?.color||COLORS[0];schedule=h?.schedule||['1','2','3','4','5','6','0'];$('habitModalTitle').textContent=h?'Edit kebiasaan':'Buat kebiasaan';$('habitName').value=h?.name||'';$('habitType').value=h?.type||'binary';$('habitTarget').value=h?.target??'';$('habitUnit').value=h?.unit||'';$('habitRule').value=h?.rule||'';$('habitModal').hidden=false;document.body.classList.add('modal-open');updateType();renderBuilder();$('habitName').focus()}
+function closeModal(){$('habitModal').hidden=true;document.body.classList.remove('modal-open');editing=null}
+function renderAll(){renderHeader();renderHabits()}
+document.querySelectorAll('.dummy').forEach(x=>x.remove());
+$('addHabitBtn').onclick=()=>openModal();$('emptyAddHabit').onclick=()=>openModal();$('closeHabitModal').onclick=closeModal;$('cancelHabit').onclick=closeModal;$('habitType').onchange=updateType;
+$('saveHabit').onclick=()=>{const name=$('habitName').value.trim();if(!name)return;const h={name,type:$('habitType').value,target:$('habitType').value==='binary'?null:Number($('habitTarget').value)||0,unit:$('habitUnit').value.trim(),rule:$('habitRule').value.trim(),color,icon,schedule};if(editing)Store.updateHabit(editing,h);else Store.addHabit(h);closeModal();renderAll()};
+renderAll();
 })();
