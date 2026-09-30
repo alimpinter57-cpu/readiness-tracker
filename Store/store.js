@@ -178,6 +178,8 @@ const Store = (() => {
   const HABIT_KEYS = {
     HABITS: 'readiness:habits',
     LOGS: 'readiness:habitLogs',
+    WORKOUT_PLANS: 'readiness:workoutPlans',
+    WORKOUT_CUSTOM_LOGS: 'readiness:workoutCustomLogs',
   };
   const getHabits = () => read(HABIT_KEYS.HABITS, []);
   const saveHabits = (list) => write(HABIT_KEYS.HABITS, list);
@@ -202,6 +204,31 @@ const Store = (() => {
   };
   const deleteHabit = (id) => saveHabits(getHabits().filter(h => h.id !== id));
   const setHabitValue = (habitId, value) => saveHabitLog(todayStr(), habitId, value);
+  const getWorkoutPlans = () => read(HABIT_KEYS.WORKOUT_PLANS, []);
+  const saveWorkoutPlans = (list) => write(HABIT_KEYS.WORKOUT_PLANS, list);
+  const addWorkoutPlan = (plan) => {
+    const list = getWorkoutPlans();
+    list.push({ id:'wp-' + Date.now(), createdAt:todayStr(), ...plan });
+    saveWorkoutPlans(list);
+  };
+  const updateWorkoutPlan = (id, patch) => saveWorkoutPlans(getWorkoutPlans().map(p=>p.id===id?{...p,...patch}:p));
+  const deleteWorkoutPlan = (id) => saveWorkoutPlans(getWorkoutPlans().filter(p=>p.id!==id));
+  const getCustomWorkoutLogs = () => read(HABIT_KEYS.WORKOUT_CUSTOM_LOGS, {});
+  const setCustomWorkoutLog = (dateStr, planId, exerciseIndex, setIndex, done) => {
+    const logs=getCustomWorkoutLogs();
+    logs[dateStr] ||= {};
+    logs[dateStr][planId] ||= {};
+    logs[dateStr][planId][exerciseIndex] ||= {};
+    logs[dateStr][planId][exerciseIndex][setIndex]=done;
+    write(HABIT_KEYS.WORKOUT_CUSTOM_LOGS, logs);
+  };
+  const getCustomWorkoutLog = (dateStr, planId) => getCustomWorkoutLogs()[dateStr]?.[planId] || {};
+  const getHabitWeekProgress = (habitId) => {
+    const end=new Date(todayStr()), start=new Date(end); start.setDate(start.getDate()-6);
+    const logs=getHabitLogs(), values=[];
+    for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=todayStr(d);values.push(logs[ds]?.[habitId] ?? null);}
+    return values;
+  };
 
   return {
     todayStr, todayDayName,
@@ -211,6 +238,7 @@ const Store = (() => {
     PROGRAM, DAY_ORDER, WEEK_NOTES, WARMUP, RULES,
     getWorkoutStart, setWorkoutStart, currentWeek,
     getWorkoutLog, getLogFor, todayLog, toggleExercise, weekCompletionCount,
-    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue,
+    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue, getHabitWeekProgress,
+    getWorkoutPlans, addWorkoutPlan, updateWorkoutPlan, deleteWorkoutPlan, getCustomWorkoutLog, setCustomWorkoutLog,
   };
 })();
