@@ -1,42 +1,97 @@
 (() => {
-let parsed=null, activePlan=null, timer=null;
-const $=id=>document.getElementById(id);
-const DAYS=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-
-function parseLine(line){
+'use strict';
+const $ = id => document.getElementById(id);
+const DAYS = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+let parsed = null, activePlan = null, timer = null, secondsLeft = 0, activeDay = 'Semua';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const plans = () => Store.getWorkoutPlans();
+const today = () => Store.todayStr();
+const getSet = (v) => typeof v === 'object' && v !== null ? v : {done: v === true, load: null, reps: null, rpe: null};
+function parseLine(line) {
  const m=line.match(/^(?:(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu)\s+([^:]+):\s*)?(.+)$/i); if(!m)return null;
- const day=m[1]||DAYS[new Date().getDay()], header=m[2]||'Workout', body=m[3];
- const setm=body.match(/(\d+)\s*[x×]\s*(\d+)/i), rpe=body.match(/\bRPE\s*([0-9]+(?:\.[0-9]+)?)/i), rest=body.match(/(?:rest|istirahat)\s*(\d+)\s*s?/i), load=body.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(?:kg|kgs?)\b/i);
- const name=body.replace(/\b\d+\s*[x×]\s*\d+\b/i,'').replace(/\bRPE\s*[0-9.]+/i,'').replace(/(?:rest|istirahat)\s*\d+\s*s?/i,'').replace(/\b\d+(?:\.\d+)?\s*kg\b/i,'').trim();
- if(!name)return null;
- return {day,name:header.trim(),exercise:name,sets:setm?Number(setm[1]):3,reps:setm?Number(setm[2]):10,load:load?Number(load[1]):0,rpe:rpe?Number(rpe[1]):null,rest:rest?Number(rest[1]):90};
+ const day=m[1]||DAYS[(new Date().getDay()+6)%7], title=m[2]||'Workout', body=m[3];
+ const sm=body.match(/(\d+)\s*[x×]\s*(\d+)/i), lm=body.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*kg\b/i), rm=body.match(/(?:rest|istirahat)\s*(\d+)\s*s?/i), pm=body.match(/RPE\s*(\d+)/i);
+ const exercise=body.replace(/\d+\s*[x×]\s*\d+/i,'').replace(/\d+(?:\.\d+)?\s*kg\b/i,'').replace(/(?:rest|istirahat)\s*\d+\s*s?/i,'').replace(/RPE\s*\d+/i,'').trim();
+ if(!exercise)return null;
+ return {day,title,exercise,sets:sm?+sm[1]:3,reps:sm?+sm[2]:10,load:lm?+lm[1]:0,rest:rm?+rm[1]:90,rpe:pm?+pm[1]:7};
 }
 function parseRaw(){
- const lines=$('rawWorkout').value.split(/\n+/).map(x=>x.trim()).filter(Boolean), rows=lines.map(parseLine).filter(Boolean);
- if(!rows.length){$('parseStatus').textContent='Belum menemukan pola latihan. Gunakan format: Senin Push Day: Bench Press 3x10 RPE 8 rest 90s';return;}
- const groups={};rows.forEach(x=>{const k=x.day+'|'+x.name;(groups[k]??=[]).push(x)});
- parsed=Object.values(groups).map(g=>({day:g[0].day,name:g[0].name,status:/rest day/i.test(g[0].name)?'Rest':/deload/i.test(g[0].name)?'Deload':'Normal',exercises:g.map(x=>({name:x.exercise,sets:x.sets,reps:x.reps,load:x.load,rpe:x.rpe,rest:x.rest}))}));
- $('parseStatus').textContent='Ditemukan '+parsed.length+' sesi dan '+rows.length+' gerakan.';
- $('previewCard').style.display='block';$('parsePreview').innerHTML=parsed.map(p=>'<div class="parser-session"><div><strong>'+esc(p.name)+'</strong><span>'+p.day+' · '+p.status+'</span></div><div class="preview-exercises">'+p.exercises.map(e=>'<span>'+esc(e.name)+' · '+e.sets+'×'+e.reps+(e.load?' · '+e.load+'kg':'')+(e.rpe?' · RPE '+e.rpe:'')+'</span>').join('')+'</div></div>').join('');
+ const rows=$('rawWorkout').value.split(/\n+/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);
+ if(!rows.length){$('parseStatus').textContent='Format belum terbaca. Contoh: Senin Push: Push-up 3x10 RPE 7 rest 60s';return;}
+ const groups={}; rows.forEach(x=>{const k=x.day+'|'+x.title;(groups[k]??=[]).push(x)});
+ parsed=Object.values(groups).map(g=>({day:g[0].day,name:g[0].title,status:'Normal',exercises:g.map(x=>({name:x.exercise,sets:x.sets,reps:x.reps,load:x.load,rpe:x.rpe,rest:x.rest}))}));
+ $('parseStatus').textContent=parsed.length+' sesi terdeteksi. Periksa sebelum disimpan.';
+ $('previewCard').hidden=false;
+ $('parsePreview').innerHTML=parsed.map(p=>'<article class="parser-session"><strong>'+esc(p.day+' · '+p.name)+'</strong>'+p.exercises.map(e=>'<span>'+esc(e.name)+' — '+e.sets+'×'+e.reps+(e.load?' · '+e.load+' kg':'')+'</span>').join('')+'</article>').join('');
 }
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function savePlans(){if(!parsed)return;parsed.forEach(p=>Store.addWorkoutPlan(p));parsed=null;$('previewCard').style.display='none';$('rawWorkout').value='';renderPlans();}
+function savePlans(){if(!parsed)return;parsed.forEach(p=>Store.addWorkoutPlan(p));parsed=null;$('previewCard').hidden=true;$('rawWorkout').value='';renderPlans();}
+function ensureDayNav(){
+ let nav=$('dayNav'); if(!nav){nav=document.createElement('div');nav.id='dayNav';nav.className='day-nav';$('planList').before(nav);}
+ const values=['Semua',...DAYS];nav.innerHTML=values.map(d=>'<button class="day-chip '+(activeDay===d?'on':'')+'" data-day="'+d+'">'+d+'</button>').join('');
+ nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{activeDay=b.dataset.day;renderPlans();});
+}
 function renderPlans(){
- const plans=Store.getWorkoutPlans(), box=$('planList');$('planEmpty').style.display=plans.length?'none':'flex';box.innerHTML='';
- plans.forEach(p=>{const row=document.createElement('article');row.className='parser-session saved-plan';row.innerHTML='<div><strong>'+esc(p.name)+'</strong><span>'+esc(p.day)+' · '+p.exercises.length+' gerakan · '+p.status+'</span></div><div class="plan-actions"><button class="mini-action">Buka</button><button class="mini-action danger-action">×</button></div>';row.querySelector('.mini-action').onclick=()=>openSession(p);row.querySelector('.danger-action').onclick=()=>{if(confirm('Hapus jadwal ini?')){Store.deleteWorkoutPlan(p.id);if(activePlan?.id===p.id)closeSession();renderPlans();}};box.appendChild(row)});
+ const all=plans(), shown=activeDay==='Semua'?all:all.filter(p=>p.day===activeDay), box=$('planList');
+ $('planEmpty').style.display=all.length?'none':'flex';ensureDayNav();box.innerHTML='';
+ if(!shown.length&&all.length){box.innerHTML='<p class="muted">Belum ada sesi pada hari ini. Kamu bisa menambah atau mengubah jadwal lewat builder.</p>';return;}
+ shown.forEach(p=>{
+  const row=document.createElement('article');row.className='parser-session saved-plan';
+  row.innerHTML='<div><strong>'+esc(p.day+' · '+p.name)+'</strong><span>'+p.exercises.length+' gerakan · '+esc(p.status||'Normal')+'</span></div><div class="plan-actions"><button class="mini-action open-plan">Mulai</button><button class="mini-action edit-plan">Edit</button><button class="mini-action danger-action">Hapus</button></div>';
+  row.querySelector('.open-plan').onclick=()=>openSession(p);
+  row.querySelector('.edit-plan').onclick=()=>editPlan(p);
+  row.querySelector('.danger-action').onclick=()=>{if(confirm('Hapus sesi ini?')){Store.deleteWorkoutPlan(p.id);renderPlans();}};
+  box.appendChild(row);
+ });
 }
-function openSession(p){activePlan=p;$('sessionCard').style.display='block';$('sessionTitle').textContent=p.name;$('sessionStatus').textContent=p.status;$('sessionMeta').textContent=p.day+' · '+p.exercises.length+' gerakan';renderSession();$('sessionCard').scrollIntoView({behavior:'smooth',block:'start'})}
+function editPlan(p){
+ const title=prompt('Nama sesi',p.name);if(title===null)return;
+ const day=prompt('Hari (Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu)',p.day);if(day===null)return;
+ const list=p.exercises.map(e=>e.name+' | '+e.sets+' set | '+e.reps+' reps | '+(e.load||0)+' kg | rest '+(e.rest||90)+'s').join('\n');
+ const raw=prompt('Edit latihan satu per baris: nama | set | reps | kg | rest 90s',list);if(raw===null)return;
+ const exercises=raw.split('\n').map(line=>{const a=line.split('|').map(s=>s.trim());if(!a[0])return null;return {name:a[0],sets:Math.max(1,+a[1]||3),reps:Math.max(1,+a[2]||10),load:Math.max(0,+a[3]||0),rest:Math.max(15,parseInt(a[4]?.replace(/\D/g,''),10)||90),rpe:7};}).filter(Boolean);
+ if(!exercises.length){alert('Sesi perlu minimal satu gerakan.');return;}
+ Store.updateWorkoutPlan(p.id,{name:title.trim()||p.name,day:DAYS.includes(day.trim())?day.trim():p.day,exercises});renderPlans();
+}
+function openSession(p){activePlan=p;$('sessionCard').hidden=false;$('sessionTitle').textContent=p.name;$('sessionStatus').textContent=p.status||'Normal';$('sessionMeta').textContent=p.day+' · '+p.exercises.length+' gerakan';renderSession();$('sessionCard').scrollIntoView({behavior:'smooth',block:'start'});}
+function priorLog(p, offset=7){const d=new Date(today());d.setDate(d.getDate()-offset);return Store.getCustomWorkoutLog(Store.todayStr(d),p.id);}
 function renderSession(){
- const p=activePlan, logs=Store.getCustomWorkoutLog(Store.todayStr(),p.id), box=$('sessionExercises');let total=0;box.innerHTML='';
- p.exercises.forEach((e,ei)=>{const card=document.createElement('div');card.className='exercise-card';const prev=previousPerformance(p,ei);card.innerHTML='<div class="exercise-head"><div><strong>'+esc(e.name)+'</strong><span>'+e.sets+'×'+e.reps+(e.load?' · '+e.load+'kg':'')+(e.rpe?' · RPE '+e.rpe:'')+'</span></div><button class="rest-start" data-rest="'+e.rest+'">REST '+e.rest+'s</button></div><div class="set-grid">'+Array.from({length:e.sets},(_,si)=>{const done=logs[ei]?.[si]===true;if(done)total+=e.reps*e.load;return '<button class="set-check '+(done?'done':'')+'" data-e="'+ei+'" data-s="'+si+'">Set '+(si+1)+' '+(done?'✓':'□')+'</button>'}).join('')+'</div>'+(prev?'<div class="previous-note">Minggu sebelumnya: '+prev+'</div>':'');box.appendChild(card)});
- $('totalVolume').textContent=total?total.toLocaleString('id-ID')+' kg':'0 kg';
- box.querySelectorAll('.set-check').forEach(b=>b.onclick=()=>{const ei=Number(b.dataset.e),si=Number(b.dataset.s),logs=Store.getCustomWorkoutLog(Store.todayStr(),p.id),done=logs[ei]?.[si]===true;Store.setCustomWorkoutLog(Store.todayStr(),p.id,ei,si,!done);if(!done){const ex=p.exercises[ei];startRest(ex.rest)}renderSession()});
- box.querySelectorAll('.rest-start').forEach(b=>b.onclick=()=>startRest(Number(b.dataset.rest)));
+ if(!activePlan)return;const p=activePlan, logs=Store.getCustomWorkoutLog(today(),p.id), box=$('sessionExercises');let total=0;box.innerHTML='';
+ p.exercises.forEach((e,ei)=>{
+  const prev=priorLog(p), prevRows=prev[ei]||{}, prevDone=Object.values(prevRows).map(getSet).filter(x=>x.done);
+  const suggestion=prevDone.length?(()=>{const maxReps=Math.max(...prevDone.map(x=>x.reps||e.reps));const maxLoad=Math.max(...prevDone.map(x=>x.load||e.load||0));return maxReps>=e.reps&&maxLoad>=e.load?'Saran: tambah 1 repetisi per set dulu, atau beban kecil jika teknik tetap rapi.':'Saran: ulangi target terakhir dengan teknik stabil.';})():'Mulai dari target dasar; naikkan bertahap setelah semua set terasa terkontrol.';
+  const card=document.createElement('article');card.className='exercise-card';
+  const setMarkup=Array.from({length:e.sets},(_,si)=>{const v=getSet(logs[ei]?.[si]);if(v.done)total+=(v.reps||e.reps)*(v.load??e.load??0);return '<div class="set-row"><label>Set '+(si+1)+'</label><input type="number" min="0" step="0.5" aria-label="Beban set '+(si+1)+'" data-field="load" data-e="'+ei+'" data-s="'+si+'" value="'+(v.load??e.load??0)+'"><input type="number" min="1" step="1" aria-label="Repetisi set '+(si+1)+'" data-field="reps" data-e="'+ei+'" data-s="'+si+'" value="'+(v.reps??e.reps)+'"><button class="set-check '+(v.done?'done':'')+'" data-e="'+ei+'" data-s="'+si+'">'+(v.done?'Selesai ✓':'Selesai?')+'</button></div>';}).join('');
+  card.innerHTML='<div class="exercise-head"><div><strong>'+esc(e.name)+'</strong><span>Target '+e.sets+' set × '+e.reps+' reps · '+(e.load||'Bodyweight')+(e.load?' kg':'')+'</span></div><button class="rest-start" data-rest="'+(e.rest||90)+'">Istirahat '+(e.rest||90)+'s</button></div><div class="smart-hint">'+esc(suggestion)+'</div><div class="set-grid set-grid-edit">'+setMarkup+'</div><label class="rpe-label">RPE sesi <select data-rpe="'+ei+'">'+Array.from({length:10},(_,i)=>'<option value="'+(i+1)+'" '+((e.rpe||7)===i+1?'selected':'')+'>'+(i+1)+'</option>').join('')+'</select></label>';
+  box.appendChild(card);
+ });
+ $('totalVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';
+ box.querySelectorAll('.set-check').forEach(b=>b.onclick=()=>{const ei=+b.dataset.e,si=+b.dataset.s;const all=Store.getCustomWorkoutLog(today(),p.id);const old=getSet(all[ei]?.[si]);old.done=!old.done;Store.setCustomWorkoutLog(today(),p.id,ei,si,old);if(old.done)startRest(p.exercises[ei].rest||90);renderSession();renderAnalytics();});
+ box.querySelectorAll('input[data-field]').forEach(inp=>inp.onchange=()=>{const ei=+inp.dataset.e,si=+inp.dataset.s,all=Store.getCustomWorkoutLog(today(),p.id),v=getSet(all[ei]?.[si]);v[inp.dataset.field]=Math.max(0,+inp.value||0);Store.setCustomWorkoutLog(today(),p.id,ei,si,v);renderSession();});
+ box.querySelectorAll('[data-rpe]').forEach(sel=>sel.onchange=()=>Store.updateWorkoutPlan(p.id,{exercises:p.exercises.map((e,i)=>i===+sel.dataset.rpe?{...e,rpe:+sel.value}:e)}));
+ box.querySelectorAll('.rest-start').forEach(b=>b.onclick=()=>startRest(+b.dataset.rest));
 }
-function previousPerformance(p,ei){
- const d=new Date(Store.todayStr());d.setDate(d.getDate()-7);const l=Store.getCustomWorkoutLog(Store.todayStr(d),p.id),e=p.exercises[ei],sets=l[ei]?Object.values(l[ei]).filter(Boolean).length:0;return sets?sets+' set selesai':''}
-function startRest(sec){clearInterval(timer);let n=sec; $('restTimer').hidden=false;$('restValue').textContent=n;timer=setInterval(()=>{n--; $('restValue').textContent=n;if(n<=0){clearInterval(timer);$('restTimer').hidden=true}},1000)}
-$('parseBtn').onclick=parseRaw;$('savePlan').onclick=savePlans;$('stopRest').onclick=()=>{clearInterval(timer);$('restTimer').hidden=true};
-function closeSession(){$('sessionCard').style.display='none';activePlan=null}
-renderPlans();
+function startRest(n){clearInterval(timer);secondsLeft=n;showTimer();timer=setInterval(()=>{secondsLeft--;showTimer();if(secondsLeft<=0){clearInterval(timer);toast('Waktu istirahat selesai. Lanjut saat siap.');$('restSheet').hidden=true;}},1000);}
+function showTimer(){$('restSheet').hidden=false;$('restValue').textContent=String(Math.floor(secondsLeft/60)).padStart(2,'0')+':'+String(secondsLeft%60).padStart(2,'0');}
+function toast(s){const t=$('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function renderAnalytics(){
+ const now=new Date(), start=new Date(now);start.setDate(now.getDate()-6);let total=0;const bars=[];
+ for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=Store.todayStr(d);let v=0;plans().forEach(p=>{const l=Store.getCustomWorkoutLog(ds,p.id);p.exercises.forEach((e,ei)=>Object.values(l[ei]||{}).map(getSet).filter(x=>x.done).forEach(x=>v+=(x.reps||e.reps)*(x.load??e.load??0)));});total+=v;bars.push({label:['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()],v});}
+ $('weekVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';
+ $('volumeChart').innerHTML=bars.map(b=>'<div class="volume-bar-wrap"><div class="volume-bar" style="height:'+Math.max(4,total?b.v/Math.max(...bars.map(x=>x.v),1)*70:4)+'px"></div><small>'+b.label+'</small></div>').join('');
+}
+function exportBackup(){const payload={version:1,plans:plans(),logs:Store.getCustomWorkoutLogs()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='readiness-workout-backup.json';a.click();URL.revokeObjectURL(a.href);}
+function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.plans)||!d.logs||typeof d.logs!=='object')throw Error();localStorage.setItem('readiness:workoutPlans',JSON.stringify(d.plans));localStorage.setItem('readiness:workoutCustomLogs',JSON.stringify(d.logs));renderPlans();renderAnalytics();toast('Backup berhasil diimpor.');}catch(e){alert('File backup tidak valid. Data lama tidak diubah.');}};reader.readAsText(file);}
+$('parseBtn').onclick=parseRaw;$('savePlan').onclick=savePlans;
+$('closeSheet').onclick=()=>{$('restSheet').hidden=true;clearInterval(timer);};
+$('finishRest').onclick=()=>{$('restSheet').hidden=true;clearInterval(timer);};
+$('addRest').onclick=()=>{secondsLeft+=15;showTimer();};
+document.querySelectorAll('[data-seconds]').forEach(b=>b.onclick=()=>startRest(+b.dataset.seconds));
+$('exportData').onclick=exportBackup;$('importData').onchange=e=>{if(e.target.files[0])importBackup(e.target.files[0]);e.target.value='';};
+$('shareRoutine').onclick=()=>{const data=JSON.stringify(plans(),null,2);if(navigator.share)navigator.share({title:'Workout routine',text:data}).catch(()=>{});else{navigator.clipboard?.writeText(data);toast('Data rutinitas disalin.');}};
+$('shareCurrent').onclick=()=>{if(!activePlan)return;const text=JSON.stringify(activePlan,null,2);navigator.clipboard?.writeText(text);toast('Sesi disalin.');};
+$('copyLast').onclick=()=>{if(!activePlan)return;const d=new Date(today());d.setDate(d.getDate()-7);const prev=Store.getCustomWorkoutLog(Store.todayStr(d),activePlan.id);activePlan.exercises.forEach((e,ei)=>Object.entries(prev[ei]||{}).forEach(([si,val])=>{const v=getSet(val);Store.setCustomWorkoutLog(today(),activePlan.id,ei,+si,{...v,done:false});}));renderSession();toast('Angka sesi sebelumnya disalin; set belum ditandai selesai.');};
+document.querySelectorAll('[data-shift]').forEach(b=>b.onclick=()=>{$('scheduleFeedback').textContent='Pilih sesi dari daftar lalu gunakan Edit untuk mengubah hari ke '+DAYS[(Math.max(0,DAYS.indexOf(activePlan?.day||DAYS[0]))+(+b.dataset.shift))%7]+'.';});
+$('markRest').onclick=()=>$('scheduleFeedback').textContent='Hari istirahat dicatat sebagai pilihan. Tidak ada latihan yang dipindahkan.';
+$('mergeTarget').onclick=()=>$('scheduleFeedback').textContent='Untuk menjaga pemulihan, gabungkan hanya gerakan ringan; edit sesi dan kurangi volume bila perlu.';
+renderPlans();renderAnalytics();
 })();
