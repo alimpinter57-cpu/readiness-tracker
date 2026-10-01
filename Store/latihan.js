@@ -2,7 +2,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const DAYS = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
-let parsed = null, activePlan = null, timer = null, secondsLeft = 0, activeDay = 'Semua';
+let parsed = null, activePlan = null, timer = null, secondsLeft = 0, activeDay = DAYS[(new Date().getDay()+6)%7];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const plans = () => Store.getWorkoutPlans();
 const today = () => Store.todayStr();
@@ -79,7 +79,7 @@ function renderAnalytics(){
  $('weekVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';
  $('volumeChart').innerHTML=bars.map(b=>'<div class="volume-bar-wrap"><div class="volume-bar" style="height:'+Math.max(4,total?b.v/Math.max(...bars.map(x=>x.v),1)*70:4)+'px"></div><small>'+b.label+'</small></div>').join('');
 }
-function exportBackup(){const payload={version:1,plans:plans(),logs:Store.getCustomWorkoutLogs()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='readiness-workout-backup.json';a.click();URL.revokeObjectURL(a.href);}
+function exportBackup(){const payload={version:1,plans:plans(),logs:JSON.parse(localStorage.getItem('readiness:workoutCustomLogs')||'{}')};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='readiness-workout-backup.json';a.click();URL.revokeObjectURL(a.href);}
 function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.plans)||!d.logs||typeof d.logs!=='object')throw Error();localStorage.setItem('readiness:workoutPlans',JSON.stringify(d.plans));localStorage.setItem('readiness:workoutCustomLogs',JSON.stringify(d.logs));renderPlans();renderAnalytics();toast('Backup berhasil diimpor.');}catch(e){alert('File backup tidak valid. Data lama tidak diubah.');}};reader.readAsText(file);}
 $('parseBtn').onclick=parseRaw;$('savePlan').onclick=savePlans;
 $('closeSheet').onclick=()=>{$('restSheet').hidden=true;clearInterval(timer);};
