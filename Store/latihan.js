@@ -60,7 +60,7 @@ function parseRaw(){
  let currentDay=null,currentTitle='Workout';const grouped=new Map();
  for(const raw of lines){
   const line=raw.trim();if(!line)continue;
-  const dayHead=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)(?:\s*[:–—-]\s*(.*))?$/i.exec(line);
+  const dayHead=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)(?:\s+([^:–—-]+))?\s*[:–—-]?$/i.exec(line);
   if(dayHead){
    const suffix=(dayHead[2]||'').trim();
    if(!suffix || /^(?:push|pull|legs|upper|lower|full.?body|cardio|strength|workout|recovery|rest)$/i.test(suffix)){
@@ -162,7 +162,7 @@ function renderAnalytics(){
 }
 function exportBackup(){const payload={version:1,plans:plans(),logs:JSON.parse(localStorage.getItem('readiness:workoutCustomLogs')||'{}')};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='readiness-workout-backup.json';a.click();URL.revokeObjectURL(a.href);}
 function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.plans)||!d.logs||typeof d.logs!=='object')throw Error();localStorage.setItem('readiness:workoutPlans',JSON.stringify(d.plans));localStorage.setItem('readiness:workoutCustomLogs',JSON.stringify(d.logs));renderPlans();renderAnalytics();toast('Backup berhasil diimpor.');}catch(e){alert('File backup tidak valid. Data lama tidak diubah.');}};reader.readAsText(file);}
-$('parseBtn').onclick=parseRaw;$('savePlan').onclick=savePlans;
+$('parseBtn').onclick=()=>{try{parseRaw();}catch(err){$('parseStatus').textContent='Parser error: '+(err?.message||'periksa format rutinitas');}};$('savePlan').onclick=savePlans;$('parseStatus').textContent='Parser siap. Tulis rutinitas lalu tekan Parse routine.';
 $('closeSheet').onclick=()=>{$('restSheet').hidden=true;clearInterval(timer);};
 $('finishRest').onclick=()=>{$('restSheet').hidden=true;clearInterval(timer);};
 $('addRest').onclick=()=>{secondsLeft+=15;showTimer();};
