@@ -208,7 +208,7 @@ const Store = (() => {
   const saveWorkoutPlans = (list) => write(HABIT_KEYS.WORKOUT_PLANS, list);
   const addWorkoutPlan = (plan) => {
     const list = getWorkoutPlans();
-    list.push({ id:'wp-' + Date.now(), createdAt:todayStr(), ...plan });
+    list.push({ id:'wp-' + Date.now() + '-' + Math.random().toString(36).slice(2,7), createdAt:todayStr(), ...plan });
     saveWorkoutPlans(list);
   };
   const updateWorkoutPlan = (id, patch) => saveWorkoutPlans(getWorkoutPlans().map(p=>p.id===id?{...p,...patch}:p));
