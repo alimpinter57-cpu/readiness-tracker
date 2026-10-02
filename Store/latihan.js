@@ -7,22 +7,45 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const plans = () => Store.getWorkoutPlans();
 const today = () => Store.todayStr();
 const getSet = (v) => typeof v === 'object' && v !== null ? v : {done: v === true, load: null, reps: null, rpe: null};
-function parseLine(line) {
- const m=line.match(/^(?:(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu)\s+([^:]+):\s*)?(.+)$/i); if(!m)return null;
- const day=m[1]||DAYS[(new Date().getDay()+6)%7], title=m[2]||'Workout', body=m[3];
- const sm=body.match(/(\d+)\s*[x×]\s*(\d+)/i), lm=body.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*kg\b/i), rm=body.match(/(?:rest|istirahat)\s*(\d+)\s*s?/i), pm=body.match(/RPE\s*(\d+)/i);
- const exercise=body.replace(/\d+\s*[x×]\s*\d+/i,'').replace(/\d+(?:\.\d+)?\s*kg\b/i,'').replace(/(?:rest|istirahat)\s*\d+\s*s?/i,'').replace(/RPE\s*\d+/i,'').trim();
- if(!exercise)return null;
- return {day,title,exercise,sets:sm?+sm[1]:3,reps:sm?+sm[2]:10,load:lm?+lm[1]:0,rest:rm?+rm[1]:90,rpe:pm?+pm[1]:7};
+function parseLine(line, inheritedDay) {
+ const clean=line.replace(/^\\s*(?:[-*•▪]+|\\d+[.)])\\s*/,'').replace(/\\s+/g,' ').trim();
+ if(!clean||/^(?:warm.?up|cool.?down|notes?|catatan|week\\s*\\d+|minggu\\s*ke.?\\d+)\\b/i.test(clean))return null;
+ const dayRx='(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu)';
+ const head=new RegExp('^'+dayRx+'(?:\\s*[-–|:]\\s*|\\s+)([^:|–-]{1,45})?(?:\\s*[:|–-]\\s*)?(.+)?$','i').exec(clean);
+ let day=inheritedDay||DAYS[(new Date().getDay()+6)%7], title='Workout', body=clean;
+ if(head){day=DAYS.find(d=>d.toLowerCase()===head[1].toLowerCase())||day;const rest=(head[3]||'').trim();if(rest){body=rest;title=(head[2]||'Workout').trim()||'Workout';}else if(head[2]&&/^(?:push|pull|legs|upper|lower|full.?body|cardio|strength|workout)$/i.test(head[2].trim())){title=head[2].trim();body=head[2].trim();}}
+ const colon=/^([^:]{2,45}):\\s*(.+)$/.exec(body);
+ if(colon&&!/\\d+\\s*[x×]\\s*\\d+/i.test(colon[1])){title=colon[1].trim();body=colon[2].trim();}
+ const sm=body.match(/(\\d+)\\s*[x×]\\s*(\\d+)/i), lm=body.match(/(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s*kg\\b/i), rm=body.match(/(?:rest|istirahat)\\s*(\\d+)\\s*(?:s|sec|detik)?\\b/i), pm=body.match(/RPE\\s*(\\d+)/i);
+ let exercise=body.replace(/(?:sets?|set)\\s*:?\\s*\\d+/ig,' ').replace(/(?:reps?|repetisi)\\s*:?\\s*\\d+/ig,' ').replace(/\\d+\\s*[x×]\\s*\\d+/i,' ').replace(/\\d+(?:\\.\\d+)?\\s*kg\\b/i,' ').replace(/(?:rest|istirahat)\\s*\\d+\\s*(?:s|sec|detik)?\\b/i,' ').replace(/RPE\\s*\\d+/i,' ').replace(/\\b(?:senin|selasa|rabu|kamis|jumat|sabtu|minggu)\\b/ig,' ').replace(/[|,:;]+/g,' ').replace(/\\s+/g,' ').trim();
+ exercise=exercise.replace(/^(?:exercise|latihan|gerakan)\\s+/i,'').trim();
+ if(!exercise||/^(?:\\d+\\s*)+$/.test(exercise))return null;
+ return {day,title,exercise,sets:sm?Math.min(20,+sm[1]):3,reps:sm?Math.min(100,+sm[2]):10,load:lm?+lm[1]:0,rest:rm?Math.min(600,+rm[1]):90,rpe:pm?Math.min(10,+pm[1]):7};
 }
 function parseRaw(){
- const rows=$('rawWorkout').value.split(/\n+/).map(s=>s.trim()).filter(Boolean).map(parseLine).filter(Boolean);
- if(!rows.length){$('parseStatus').textContent='Format belum terbaca. Contoh: Senin Push: Push-up 3x10 RPE 7 rest 60s';return;}
- const groups={}; rows.forEach(x=>{const k=x.day+'|'+x.title;(groups[k]??=[]).push(x)});
+ let currentDay=null,currentTitle='Workout';
+ const rows=[];
+ $('rawWorkout').value.split(/\\n+/).forEach(raw=>{
+  const line=raw.trim();if(!line)return;
+  const dayOnly=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu)(?:\\s*[:–-].*)?$/i.exec(line);
+  if(dayOnly){currentDay=DAYS.find(d=>d.toLowerCase()===dayOnly[1].toLowerCase());const suffix=line.replace(new RegExp('^'+dayOnly[1]+'\\s*[:–-]?\\s*','i'),'').trim();if(suffix)currentTitle=suffix;return;}
+  const row=parseLine(line,currentDay);if(row){if(currentDay&&!/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu)$/i.test(row.title))currentTitle=row.title;rows.push(row);}
+ });
+ if(!rows.length){$('parseStatus').textContent='Belum ada gerakan yang dikenali. Gunakan contoh: Senin Push: Push-up 3x10, atau tulis nama hari pada baris terpisah.';return;}
+ const groups={};rows.forEach(x=>{const k=x.day+'|'+x.title;(groups[k]??=[]).push(x)});
  parsed=Object.values(groups).map(g=>({day:g[0].day,name:g[0].title,status:'Normal',exercises:g.map(x=>({name:x.exercise,sets:x.sets,reps:x.reps,load:x.load,rpe:x.rpe,rest:x.rest}))}));
- $('parseStatus').textContent=parsed.length+' sesi terdeteksi. Periksa sebelum disimpan.';
+ $('parseStatus').textContent=parsed.length+' sesi terdeteksi dari '+rows.length+' gerakan. Tinjau nama, hari, set, dan repetisi sebelum disimpan.';
  $('previewCard').hidden=false;
- $('parsePreview').innerHTML=parsed.map(p=>'<article class="parser-session"><strong>'+esc(p.day+' · '+p.name)+'</strong>'+p.exercises.map(e=>'<span>'+esc(e.name)+' — '+e.sets+'×'+e.reps+(e.load?' · '+e.load+' kg':'')+'</span>').join('')+'</article>').join('');
+ $('parsePreview').innerHTML=parsed.map((p,i)=>'<article class="parser-session"><label class="review-session"><input type="checkbox" checked data-keep="'+i+'"><strong>'+esc(p.day+' · '+p.name)+'</strong></label>'+p.exercises.map((e,j)=>'<div class="review-exercise"><span>'+esc(e.name)+'</span><small>'+e.sets+' set × '+e.reps+' reps · rest '+e.rest+'s'+(e.load?' · '+e.load+' kg':'')+'</small><button type="button" class="mini-action" data-remove="'+i+'" data-ex="'+j+'">Buang baris</button></div>').join('')+'</article>').join('');
+ $('parsePreview').querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{const p=parsed[+b.dataset.remove];p.exercises.splice(+b.dataset.ex,1);if(!p.exercises.length)parsed.splice(+b.dataset.remove,1);parseRawPreviewOnly();});
+ $('parsePreview').querySelectorAll('[data-keep]').forEach(c=>c.onchange=()=>{c.closest('.parser-session').classList.toggle('excluded',!c.checked);});
+}
+function parseRawPreviewOnly(){
+ const keep=[...$('parsePreview').querySelectorAll('[data-keep]')].map(c=>c.checked);
+ parsed=parsed.filter((p,i)=>keep[i]!==false);
+ $('parseStatus').textContent=parsed.length+' sesi siap ditinjau.';
+ $('parsePreview').innerHTML=parsed.map((p,i)=>'<article class="parser-session"><strong>'+esc(p.day+' · '+p.name)+'</strong>'+p.exercises.map((e,j)=>'<div class="review-exercise"><span>'+esc(e.name)+'</span><small>'+e.sets+' set × '+e.reps+' reps · rest '+e.rest+'s</small><button type="button" class="mini-action" data-remove="'+i+'" data-ex="'+j+'">Buang</button></div>').join('')+'</article>').join('');
+ $('parsePreview').querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{parsed[+b.dataset.remove].exercises.splice(+b.dataset.remove,1);parsed=parsed.filter(p=>p.exercises.length);parseRawPreviewOnly();});
 }
 function savePlans(){if(!parsed)return;parsed.forEach(p=>Store.addWorkoutPlan(p));parsed=null;$('previewCard').hidden=true;$('rawWorkout').value='';renderPlans();}
 function ensureDayNav(){
@@ -44,13 +67,13 @@ function renderPlans(){
  });
 }
 function editPlan(p){
- const title=prompt('Nama sesi',p.name);if(title===null)return;
- const day=prompt('Hari (Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu)',p.day);if(day===null)return;
- const list=p.exercises.map(e=>e.name+' | '+e.sets+' set | '+e.reps+' reps | '+(e.load||0)+' kg | rest '+(e.rest||90)+'s').join('\n');
- const raw=prompt('Edit latihan satu per baris: nama | set | reps | kg | rest 90s',list);if(raw===null)return;
- const exercises=raw.split('\n').map(line=>{const a=line.split('|').map(s=>s.trim());if(!a[0])return null;return {name:a[0],sets:Math.max(1,+a[1]||3),reps:Math.max(1,+a[2]||10),load:Math.max(0,+a[3]||0),rest:Math.max(15,parseInt(a[4]?.replace(/\D/g,''),10)||90),rpe:7};}).filter(Boolean);
+ const name=prompt('Nama sesi',p.name);if(name===null)return;
+ const day=prompt('Hari: Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu',p.day);if(day===null)return;
+ const lines=p.exercises.map(e=>e.name+' | '+e.sets+' | '+e.reps+' | '+(e.load||0)+' | '+(e.rest||90)+' | '+(e.rpe||7)).join('\\n');
+ const raw=prompt('Satu gerakan per baris: nama | set | reps | kg | istirahat (detik) | RPE. Contoh: Push-up | 3 | 12 | 0 | 60 | 7',lines);if(raw===null)return;
+ const exercises=raw.split('\\n').map(line=>{const a=line.split('|').map(s=>s.trim());if(!a[0])return null;return {name:a[0],sets:Math.min(20,Math.max(1,parseInt(a[1],10)||3)),reps:Math.min(100,Math.max(1,parseInt(a[2],10)||10)),load:Math.max(0,parseFloat(a[3])||0),rest:Math.min(600,Math.max(15,parseInt(a[4],10)||90)),rpe:Math.min(10,Math.max(1,parseInt(a[5],10)||7))};}).filter(Boolean);
  if(!exercises.length){alert('Sesi perlu minimal satu gerakan.');return;}
- Store.updateWorkoutPlan(p.id,{name:title.trim()||p.name,day:DAYS.includes(day.trim())?day.trim():p.day,exercises});renderPlans();
+ Store.updateWorkoutPlan(p.id,{name:name.trim()||p.name,day:DAYS.includes(day.trim())?day.trim():p.day,exercises});renderPlans();
 }
 function openSession(p){activePlan=p;$('sessionCard').hidden=false;$('sessionTitle').textContent=p.name;$('sessionStatus').textContent=p.status||'Normal';$('sessionMeta').textContent=p.day+' · '+p.exercises.length+' gerakan';renderSession();$('sessionCard').scrollIntoView({behavior:'smooth',block:'start'});}
 function priorLog(p, offset=7){const d=new Date(today());d.setDate(d.getDate()-offset);return Store.getCustomWorkoutLog(Store.todayStr(d),p.id);}
