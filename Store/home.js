@@ -43,8 +43,8 @@ function renderHabits(){
    control.innerHTML='<div class="quantity-control"><button>−</button><strong>'+Number(v||0)+'</strong><button>+</button><span>' + esc(h.unit||'kali')+'</span></div>';
    const [minus,plus]=control.querySelectorAll('button');minus.onclick=()=>{Store.setHabitValue(h.id,Math.max(0,Number(v||0)-1));renderAll()};plus.onclick=()=>{Store.setHabitValue(h.id,Number(v||0)+1);renderAll()};
   }
-  const actions=document.createElement('div');actions.className='habit-actions';const e=document.createElement('button');e.textContent='Edit';e.onclick=()=>openModal(h);const del=document.createElement('button');del.textContent='×';del.onclick=()=>{if(confirm('Hapus kebiasaan ini?')){Store.deleteHabit(h.id);renderAll()}};actions.append(e,del);
-  row.append(iconEl,info,control,actions);list.appendChild(row);
+  const actions=document.createElement('div');actions.className='habit-actions';const history=document.createElement('button');history.textContent='Riwayat';history.onclick=()=>showHabitHistory(h);const e=document.createElement('button');e.textContent='Edit';e.onclick=()=>openModal(h);const del=document.createElement('button');del.textContent='×';del.onclick=()=>{if(confirm('Hapus kebiasaan ini?')){Store.deleteHabit(h.id);renderAll()}};actions.append(e,del);
+  actions.append(history);row.append(iconEl,info,control,actions);list.appendChild(row);
  });
  $('habitSummary').textContent=habits.length?completed+' / '+habits.length+' selesai':'0 kebiasaan';
  $('dailyPercent').textContent=(habits.length?Math.round(completed/habits.length*100):0)+'%';
@@ -66,6 +66,14 @@ function renderBuilder(){
 function updateType(){const t=$('habitType').value;$('habitTarget').disabled=t==='binary';$('habitUnit').placeholder=t==='duration'?'menit':'ml / kali / halaman';$('habitTargetHint').textContent=t==='binary'?'':'target';}
 function openModal(h=null){editing=h?.id||null;icon=h?.icon||ICONS[0][0];color=h?.color||COLORS[0];schedule=h?.schedule||['1','2','3','4','5','6','0'];$('habitModalTitle').textContent=h?'Edit kebiasaan':'Buat kebiasaan';$('habitName').value=h?.name||'';$('habitType').value=h?.type||'binary';$('habitTarget').value=h?.target??'';$('habitUnit').value=h?.unit||'';$('habitRule').value=h?.rule||'';$('habitModal').hidden=false;document.body.classList.add('modal-open');updateType();renderBuilder();$('habitName').focus()}
 function closeModal(){$('habitModal').hidden=true;document.body.classList.remove('modal-open');editing=null}
+function showHabitHistory(h){
+ let panel=$('habitHistory');if(!panel){panel=document.createElement('section');panel.id='habitHistory';panel.className='card habit-history';$('habitList').parentElement.after(panel);}
+ const vals=Store.getHabitWeekProgress(h.id), labels=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+ const start=new Date();start.setDate(start.getDate()-6);
+ const rows=vals.map((v,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const done=v===true||(v!==null&&h.type!=='binary'&&Number(v)>0);const value=v===null?'Belum dicatat':h.type==='binary'?(v?'Selesai':'Belum selesai'):(String(v)+(h.unit?' '+h.unit:''));return '<div class="history-day"><span>'+labels[d.getDay()===0?6:d.getDay()-1]+' <small>'+d.getDate()+'</small></span><strong>'+esc(value)+'</strong><i class="'+(done?'is-done':'')+'">'+(done?'●':'○')+'</i></div>';}).join('');
+ panel.innerHTML='<div class="section-head"><div><span class="section-kicker">RIWAYAT 7 HARI</span><h2>'+esc(h.icon||'')+' '+esc(h.name)+'</h2></div><button class="mini-action" id="closeHabitHistory">Tutup</button></div><div class="history-list">'+rows+'</div><p class="muted">Riwayat ini menampilkan nilai yang dicatat pada perangkat ini, bukan perkiraan.</p>';
+ panel.scrollIntoView({behavior:'smooth',block:'nearest'});$('closeHabitHistory').onclick=()=>panel.remove();
+}
 function renderAll(){renderHeader();renderHabits()}
 document.querySelectorAll('.dummy').forEach(x=>x.remove());
 $('addHabitBtn').onclick=()=>openModal();$('emptyAddHabit').onclick=()=>openModal();$('closeHabitModal').onclick=closeModal;$('cancelHabit').onclick=closeModal;$('habitType').onchange=updateType;
