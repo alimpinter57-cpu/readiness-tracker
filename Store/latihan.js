@@ -49,7 +49,28 @@ function parseLine(raw, inheritedDay, inheritedTitle){
 }
 function renderParsePreview(){
  const root=$('parsePreview');
- root.innerHTML=parsed.map((p,i)=>'<article class="parser-session" data-session="'+i+'"><label class="review-session"><input type="checkbox" data-session-keep checked><strong>Pakai sesi ini</strong></label><div class="editor-top"><label>Hari<select data-day>'+DAYS.map(d=>'<option '+(p.day===d?'selected':'')+'>'+d+'</option>').join('')+'</select></label><label>Nama sesi<input data-title maxlength="60" value="'+esc(p.name)+'"></label></div><div class="parser-exercises">'+p.exercises.map((e,j)=>'<div class="editor-exercise" data-exercise="'+j+'"><label class="review-session"><input type="checkbox" data-ex-keep checked><strong>Ambil gerakan</strong></label><label>Nama gerakan<input data-name maxlength="70" value="'+esc(e.name)+'"></label><div class="editor-fields"><label>Set<input data-sets type="number" min="1" max="20" value="'+e.sets+'"></label><label>Repetisi<input data-reps type="number" min="1" max="100" value="'+e.reps+'"></label><label>Istirahat (detik)<input data-rest type="number" min="15" max="600" value="'+e.rest+'"></label><label>Beban (kg)<input data-load type="number" min="0" step="0.5" value="'+e.load+'"></label><label>RPE<input data-rpe type="number" min="1" max="10" value="'+e.rpe+'"></label></div><button type="button" class="mini-action danger-action" data-delete-ex>Buang gerakan</button></div>').join('')}</div><button type="button" class="mini-action" data-add-ex>＋ Tambah gerakan</button></article>').join('');
+ root.innerHTML=parsed.map((p,i)=>`
+  <article class="parser-session" data-session="${i}">
+   <label class="review-session"><input type="checkbox" data-session-keep checked><strong>Pakai sesi ini</strong></label>
+   <div class="editor-top">
+    <label>Hari<select data-day>${DAYS.map(d=>`<option ${p.day===d?'selected':''}>${d}</option>`).join('')}</select></label>
+    <label>Nama sesi<input data-title maxlength="60" value="${esc(p.name)}"></label>
+   </div>
+   <div class="parser-exercises">${p.exercises.map((e,j)=>`
+    <div class="editor-exercise" data-exercise="${j}">
+     <label class="review-session"><input type="checkbox" data-ex-keep checked><strong>Ambil gerakan</strong></label>
+     <label>Nama gerakan<input data-name maxlength="70" value="${esc(e.name)}"></label>
+     <div class="editor-fields">
+      <label>Set<input data-sets type="number" min="1" max="20" value="${e.sets}"></label>
+      <label>Repetisi<input data-reps type="number" min="1" max="100" value="${e.reps}"></label>
+      <label>Istirahat (detik)<input data-rest type="number" min="15" max="600" value="${e.rest}"></label>
+      <label>Beban (kg)<input data-load type="number" min="0" step="0.5" value="${e.load}"></label>
+      <label>RPE<input data-rpe type="number" min="1" max="10" value="${e.rpe}"></label>
+     </div>
+     <button type="button" class="mini-action danger-action" data-delete-ex>Buang gerakan</button>
+    </div>`).join('')}</div>
+   <button type="button" class="mini-action" data-add-ex>＋ Tambah gerakan</button>
+  </article>`).join('');
  root.querySelectorAll('[data-session-keep]').forEach(c=>c.onchange=()=>c.closest('[data-session]').classList.toggle('excluded',!c.checked));
  root.querySelectorAll('[data-ex-keep]').forEach(c=>c.onchange=()=>c.closest('[data-exercise]').classList.toggle('excluded',!c.checked));
  root.querySelectorAll('[data-delete-ex]').forEach(b=>b.onclick=()=>{const card=b.closest('[data-session]'),si=+card.dataset.session,ei=+b.closest('[data-exercise]').dataset.exercise;parsed[si].exercises.splice(ei,1);renderParsePreview();});
