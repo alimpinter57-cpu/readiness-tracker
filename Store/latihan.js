@@ -61,7 +61,12 @@ function parseRaw(){
  for(const raw of lines){
   const line=raw.trim();if(!line)continue;
   const dayHead=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)(?:\s*[:–—-]\s*(.*))?$/i.exec(line);
-  if(dayHead){currentDay=normalizeDay(dayHead[1]);currentTitle=(dayHead[2]||'Workout').trim()||'Workout';continue;}
+  if(dayHead){
+   const suffix=(dayHead[2]||'').trim();
+   if(!suffix || /^(?:push|pull|legs|upper|lower|full.?body|cardio|strength|workout|recovery|rest)$/i.test(suffix)){
+    currentDay=normalizeDay(dayHead[1]);currentTitle=suffix||'Workout';continue;
+   }
+  }
   const row=parseLine(line,currentDay,currentTitle);
   if(!row)continue;
   const key=row.day+'|'+row.title;
