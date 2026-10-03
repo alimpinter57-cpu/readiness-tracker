@@ -122,7 +122,12 @@ function editPlan(p){
  Store.updateWorkoutPlan(p.id,{name:overlay.querySelector('.editor-name').value.trim()||p.name,day:overlay.querySelector('.editor-day').value,exercises});close();renderPlans();if(activePlan?.id===p.id){activePlan=plans().find(x=>x.id===p.id);renderSession();}
  };
 }
-function openSession(p){activePlan=p;$('sessionCard').hidden=false;$('sessionTitle').textContent=p.name;$('sessionStatus').textContent=p.status||'Normal';$('sessionMeta').textContent=p.day+' · '+p.exercises.length+' gerakan';renderSession();$('sessionCard').scrollIntoView({behavior:'smooth',block:'start'});}
+function openSession(p){
+ if(!p||!Array.isArray(p.exercises)||!p.exercises.length){toast('Sesi ini belum memiliki gerakan valid. Buka Edit untuk memperbaikinya.');return;}
+ activePlan={...p,exercises:p.exercises.map(e=>({...e,sets:Math.min(20,Math.max(1,Number(e.sets)||3)),reps:Math.min(100,Math.max(1,Number(e.reps)||10)),rest:Math.min(600,Math.max(15,Number(e.rest)||90)),load:Math.max(0,Number(e.load)||0),rpe:Math.min(10,Math.max(1,Number(e.rpe)||7))}))};
+ $('sessionCard').hidden=false;$('sessionTitle').textContent=activePlan.name||'Workout';$('sessionStatus').textContent=activePlan.status||'Normal';$('sessionMeta').textContent=(activePlan.day||'Hari fleksibel')+' · '+activePlan.exercises.length+' gerakan';
+ try{renderSession();$('sessionCard').scrollIntoView({behavior:'auto',block:'start'});}catch(err){$('sessionExercises').innerHTML='<p class="muted">Sesi gagal dibuka: '+esc(err?.message||'data tidak valid')+'. Periksa atau edit jadwal ini.</p>';}
+}
 function priorLog(p, offset=7){const d=new Date(today());d.setDate(d.getDate()-offset);return Store.getCustomWorkoutLog(Store.todayStr(d),p.id);}
 function renderSession(){
  if(!activePlan)return;const p=activePlan, logs=Store.getCustomWorkoutLog(today(),p.id), box=$('sessionExercises');let total=0;box.innerHTML='';
