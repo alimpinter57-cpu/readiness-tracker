@@ -135,7 +135,7 @@ function renderSession(){
   box.appendChild(card);
  });
  $('totalVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';
- box.querySelectorAll('.set-check').forEach(b=>b.onclick=()=>{const ei=+b.dataset.e,si=+b.dataset.s;const all=Store.getCustomWorkoutLog(today(),p.id);const old=getSet(all[ei]?.[si]);old.done=!old.done;Store.setCustomWorkoutLog(today(),p.id,ei,si,old);if(old.done)startRest(p.exercises[ei].rest||90);renderSession();renderAnalytics();});
+ box.querySelectorAll('.set-check').forEach(b=>b.onclick=()=>{const ei=+b.dataset.e,si=+b.dataset.s;const all=Store.getCustomWorkoutLog(today(),p.id);const old=getSet(all[ei]?.[si]);old.done=!old.done;Store.setCustomWorkoutLog(today(),p.id,ei,si,old);if(old.done)startRest(p.exercises[ei].rest||90);renderSession();renderAnalytics();renderWorkoutHistory();});
  box.querySelectorAll('input[data-field]').forEach(inp=>inp.onchange=()=>{const ei=+inp.dataset.e,si=+inp.dataset.s,all=Store.getCustomWorkoutLog(today(),p.id),v=getSet(all[ei]?.[si]);v[inp.dataset.field]=Math.max(0,+inp.value||0);Store.setCustomWorkoutLog(today(),p.id,ei,si,v);renderSession();});
  box.querySelectorAll('[data-rpe]').forEach(sel=>sel.onchange=()=>Store.updateWorkoutPlan(p.id,{exercises:p.exercises.map((e,i)=>i===+sel.dataset.rpe?{...e,rpe:+sel.value}:e)}));
  box.querySelectorAll('.rest-start').forEach(b=>b.onclick=()=>startRest(+b.dataset.rest));
@@ -148,6 +148,14 @@ function renderAnalytics(){
  for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=Store.todayStr(d);let v=0;plans().forEach(p=>{const l=Store.getCustomWorkoutLog(ds,p.id);p.exercises.forEach((e,ei)=>Object.values(l[ei]||{}).map(getSet).filter(x=>x.done).forEach(x=>v+=(x.reps||e.reps)*(x.load??e.load??0)));});total+=v;bars.push({label:['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()],v});}
  $('weekVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';
  $('volumeChart').innerHTML=bars.map(b=>'<div class="volume-bar-wrap"><div class="volume-bar" style="height:'+Math.max(4,total?b.v/Math.max(...bars.map(x=>x.v),1)*70:4)+'px"></div><small>'+b.label+'</small></div>').join('');
+}
+function renderWorkoutHistory(){
+ const root=$('workoutHistory');if(!root)return;const rows=[];const end=new Date(today());
+ for(let i=29;i>=0;i--){const d=new Date(end);d.setDate(end.getDate()-i);const ds=Store.todayStr(d);let sessions=[];
+ plans().forEach(p=>{const log=Store.getCustomWorkoutLog(ds,p.id);let done=0;Object.values(log).forEach(ex=>Object.values(ex||{}).forEach(v=>{if(getSet(v).done)done++;}));if(done)sessions.push(p.name+' ('+done+' set)');});
+ if(sessions.length)rows.push('<div class="history-day"><span>'+d.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'})+'</span><strong>'+esc(sessions.join(' · '))+'</strong><i class="is-done">●</i></div>');
+ }
+ root.innerHTML=rows.length?rows.reverse().join(''):'<p class="muted">Belum ada sesi selesai dalam 30 hari terakhir. Catatan akan muncul setelah set ditandai selesai.</p>';
 }
 function exportBackup(){const payload={version:1,plans:plans(),logs:JSON.parse(localStorage.getItem('readiness:workoutCustomLogs')||'{}')};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='readiness-workout-backup.json';a.click();URL.revokeObjectURL(a.href);}
 function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.plans)||!d.logs||typeof d.logs!=='object')throw Error();localStorage.setItem('readiness:workoutPlans',JSON.stringify(d.plans));localStorage.setItem('readiness:workoutCustomLogs',JSON.stringify(d.logs));renderPlans();renderAnalytics();toast('Backup berhasil diimpor.');}catch(e){alert('File backup tidak valid. Data lama tidak diubah.');}};reader.readAsText(file);}
