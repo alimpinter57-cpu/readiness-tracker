@@ -28,11 +28,11 @@ function parseLine(raw, inheritedDay){
  }
  const colon=/^([^:]{2,70})\\s*:\\s*(.+)$/.exec(body);
  if(colon && (prescription||/\\d+\\s*[x×]/i.test(colon[2])))body=colon[1]+' '+colon[2];
- const sets=prescription?+prescription[1]:+(explicitSets?.[1]||3), reps=prescription?+(prescription[3]||prescription[2]):+(explicitReps?.[1]||10);
+ const sets=prescription?+prescription[1]:(explicitSets?+explicitSets[1]:null), reps=prescription?+(prescription[3]||prescription[2]):(explicitReps?+explicitReps[1]:null);
  const load=/(\\d+(?:[.,]\\d+)?)\\s*kg\\b/i.exec(body), rest=/\\b(?:rest|istirahat)\\s*[:=]?\\s*(\\d{1,3})\\s*(?:s|sec|secs|detik)?\\b/i.exec(body), rpe=/\\bRPE\\s*[:=]?\\s*(10|[1-9])\\b/i.exec(body);
  let name=body.replace(/\\b\\d{1,2}\\s*[x×]\\s*\\d{1,3}(?:\\s*[-–]\\s*\\d{1,3})?/i,' ').replace(/\\b(?:sets?|reps?|repetisi)\\s*[:=]?\\s*\\d+\\b/ig,' ').replace(/\\b\\d+(?:[.,]\\d+)?\\s*kg\\b/i,' ').replace(/\\b(?:rest|istirahat)\\s*[:=]?\\s*\\d{1,3}\\s*(?:s|sec|secs|detik)?\\b/i,' ').replace(/\\bRPE\\s*[:=]?\\s*(?:10|[1-9])\\b/i,' ').replace(/[|,:;]+/g,' ').replace(/\\s+/g,' ').trim().replace(/^(?:exercise|latihan|gerakan)\\s+/i,'');
  if(!name||/^(?:contoh|example|target|jadwal|program|catatan|evaluasi|prinsip|aturan|strategi|tujuan|fokus|minggu|hari)\\b/i.test(name))return null;
- return {day:normalizeDay(dayMatch?.[1])||inheritedDay||DAYS[(new Date().getDay()+6)%7],exercise:name,sets:Math.min(20,Math.max(1,sets)),reps:Math.min(100,Math.max(1,reps)),load:Math.max(0,parseFloat((load?.[1]||'0').replace(',','.'))),rest:Math.min(600,Math.max(15,+(rest?.[1]||90))),rpe:Math.min(10,Math.max(1,+(rpe?.[1]||7)))};
+ return {day:normalizeDay(dayMatch?.[1])||inheritedDay||DAYS[(new Date().getDay()+6)%7],exercise:name,sets:sets===null?null:Math.min(20,Math.max(1,sets)),reps:reps===null?null:Math.min(100,Math.max(1,reps)),load:Math.max(0,parseFloat((load?.[1]||'0').replace(',','.'))),rest:Math.min(600,Math.max(15,+(rest?.[1]||90))),rpe:Math.min(10,Math.max(1,+(rpe?.[1]||7)))};
 }
 function renderParsePreview(){
  const root=$('parsePreview');
@@ -48,8 +48,8 @@ function renderParsePreview(){
      <label class="review-session"><input type="checkbox" data-ex-keep checked><strong>Ambil gerakan</strong></label>
      <label>Nama gerakan<input data-name maxlength="70" value="${esc(e.name)}"></label>
      <div class="editor-fields">
-      <label>Set<input data-sets type="number" min="1" max="20" value="${e.sets}"></label>
-      <label>Repetisi<input data-reps type="number" min="1" max="100" value="${e.reps}"></label>
+      <label>Set<input data-sets type="number" min="1" max="20" value="${e.sets??''}"></label>
+      <label>Repetisi<input data-reps type="number" min="1" max="100" value="${e.reps??''}"></label>
       <label>Istirahat (detik)<input data-rest type="number" min="15" max="600" value="${e.rest}"></label>
       <label>Beban (kg)<input data-load type="number" min="0" step="0.5" value="${e.load}"></label>
       <label>RPE<input data-rpe type="number" min="1" max="10" value="${e.rpe}"></label>
@@ -73,7 +73,7 @@ function parseRaw(){
   grouped.get(key).exercises.push({name:row.exercise,sets:row.sets,reps:row.reps,load:row.load,rpe:row.rpe,rest:row.rest,selected:true});
  }
  parsed=[...grouped.values()];
- if(!parsed.length){$('previewCard').hidden=true;$('parseStatus').textContent='Tidak ditemukan gerakan. Gunakan format: Senin, lalu baris Pull-up 3x5, Push-up 3x10.';return;}
+ if(!parsed.length){$('previewCard').hidden=true;$('parseStatus').textContent='Tidak ada baris gerakan yang terbaca. Tulis nama hari, lalu satu gerakan per baris; set dan repetisi boleh dikosongkan.';return;}
  $('parseStatus').textContent=parsed.reduce((n,p)=>n+p.exercises.length,0)+' gerakan ditemukan dalam '+parsed.length+' hari. Hanya gerakan yang ditampilkan untuk diperiksa.';
  $('previewCard').hidden=false;renderParsePreview();
 }
@@ -84,8 +84,8 @@ function savePlans(){
   if(!card.querySelector('[data-session-keep]')?.checked)return;
   const exercises=[...card.querySelectorAll('[data-exercise]')].filter(row=>row.querySelector('[data-ex-keep]')?.checked).map(row=>({
    name:row.querySelector('[data-name]').value.trim(),
-   sets:Math.min(20,Math.max(1,+row.querySelector('[data-sets]').value||3)),
-   reps:Math.min(100,Math.max(1,+row.querySelector('[data-reps]').value||10)),
+   sets:row.querySelector('[data-sets]').value===''?null:Math.min(20,Math.max(1,+row.querySelector('[data-sets]').value)),
+   reps:row.querySelector('[data-reps]').value===''?null:Math.min(100,Math.max(1,+row.querySelector('[data-reps]').value)),
    rest:Math.min(600,Math.max(15,+row.querySelector('[data-rest]').value||90)),
    load:Math.max(0,+row.querySelector('[data-load]').value||0),
    rpe:Math.min(10,Math.max(1,+row.querySelector('[data-rpe]').value||7))
