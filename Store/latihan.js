@@ -13,26 +13,13 @@ function normalizeDay(value){
  return DAYS.find(d=>d.toLowerCase()===v)||aliases[v]||null;
 }
 function parseLine(raw, inheritedDay){
- let line=String(raw||'').replace(/^\\s*(?:[-*•▪]+|\\d+[.)])\\s*/,'').replace(/\\s+/g,' ').trim();
+ let line=String(raw||'').replace(/^\s*(?:[-*•▪]+|\d+[.)])\s*/,'').replace(/\s+/g,' ').trim();
  if(!line)return null;
- const dayMatch=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\\b\\s*[:|–—-]?\\s*/i.exec(line);
+ const dayMatch=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*[:|–—-]?\s*/i.exec(line);
  if(dayMatch)line=line.slice(dayMatch[0].length).trim();
- if(!line||/^(?:warm.?up|cool.?down|notes?|catatan|week\\s*\\d+|minggu\\s*ke.?\\d+|jadwal|workout plan|istirahat|recovery|pendinginan|pemanasan)\\b/i.test(line))return null;
- const prescription=/(\\d{1,2})\\s*[x×]\\s*(\\d{1,3})(?:\\s*[-–]\\s*(\\d{1,3}))?/i.exec(line);
- const explicitSets=/\\bsets?\\s*[:=]?\\s*(\\d{1,2})\\b/i.exec(line), explicitReps=/\\b(?:reps?|repetisi)\\s*[:=]?\\s*(\\d{1,3})\\b/i.exec(line);
- const hasDose=!!(prescription||(explicitSets&&explicitReps));
- let body=line;
- if(!hasDose){
-  const known=/\\b(pull.?up|chin.?up|push.?up|squat|lunge|glute bridge|dead bug|side plank|plank|bird dog|calf raise|jalan cepat|bersepeda|mobilitas|pike push.?up|assisted pull.?up|scapular pull.?up)\\b/i.test(line);
-  if(!known)return null;
- }
- const colon=/^([^:]{2,70})\\s*:\\s*(.+)$/.exec(body);
- if(colon && (prescription||/\\d+\\s*[x×]/i.test(colon[2])))body=colon[1]+' '+colon[2];
- const sets=prescription?+prescription[1]:(explicitSets?+explicitSets[1]:null), reps=prescription?+(prescription[3]||prescription[2]):(explicitReps?+explicitReps[1]:null);
- const load=/(\\d+(?:[.,]\\d+)?)\\s*kg\\b/i.exec(body), rest=/\\b(?:rest|istirahat)\\s*[:=]?\\s*(\\d{1,3})\\s*(?:s|sec|secs|detik)?\\b/i.exec(body), rpe=/\\bRPE\\s*[:=]?\\s*(10|[1-9])\\b/i.exec(body);
- let name=body.replace(/\\b\\d{1,2}\\s*[x×]\\s*\\d{1,3}(?:\\s*[-–]\\s*\\d{1,3})?/i,' ').replace(/\\b(?:sets?|reps?|repetisi)\\s*[:=]?\\s*\\d+\\b/ig,' ').replace(/\\b\\d+(?:[.,]\\d+)?\\s*kg\\b/i,' ').replace(/\\b(?:rest|istirahat)\\s*[:=]?\\s*\\d{1,3}\\s*(?:s|sec|secs|detik)?\\b/i,' ').replace(/\\bRPE\\s*[:=]?\\s*(?:10|[1-9])\\b/i,' ').replace(/[|,:;]+/g,' ').replace(/\\s+/g,' ').trim().replace(/^(?:exercise|latihan|gerakan)\\s+/i,'');
- if(!name||/^(?:contoh|example|target|jadwal|program|catatan|evaluasi|prinsip|aturan|strategi|tujuan|fokus|minggu|hari)\\b/i.test(name))return null;
- return {day:normalizeDay(dayMatch?.[1])||inheritedDay||DAYS[(new Date().getDay()+6)%7],exercise:name,sets:sets===null?null:Math.min(20,Math.max(1,sets)),reps:reps===null?null:Math.min(100,Math.max(1,reps)),load:Math.max(0,parseFloat((load?.[1]||'0').replace(',','.'))),rest:Math.min(600,Math.max(15,+(rest?.[1]||90))),rpe:Math.min(10,Math.max(1,+(rpe?.[1]||7)))};
+ if(!line)return null;
+ // Parameter latihan sengaja tidak diekstrak; pengguna mengaturnya sendiri.
+ return {day:normalizeDay(dayMatch?.[1])||inheritedDay||DAYS[(new Date().getDay()+6)%7],exercise:line,sets:null,reps:null,load:0,rest:90,rpe:7};
 }
 function renderParsePreview(){
  const root=$('parsePreview');
@@ -64,17 +51,20 @@ function renderParsePreview(){
  root.querySelectorAll('[data-add-ex]').forEach(b=>b.onclick=()=>{const si=+b.closest('[data-session]').dataset.session;parsed[si].exercises.push({name:'',sets:3,reps:10,rest:90,load:0,rpe:7,selected:true});renderParsePreview();});
 }
 function parseRaw(){
- const lines=$('rawWorkout').value.split(/\\r?\\n/);let currentDay=null;const grouped=new Map();
- for(const raw of lines){const line=raw.trim();if(!line)continue;
-  const head=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)(?:\\s+([^:–—-]+))?\\s*[:–—-]?$/i.exec(line);
-  if(head){currentDay=normalizeDay(head[1]);continue;}
-  const row=parseLine(line,currentDay);if(!row)continue;
-  const key=row.day;if(!grouped.has(key))grouped.set(key,{day:row.day,name:'Workout',status:'Normal',exercises:[]});
-  grouped.get(key).exercises.push({name:row.exercise,sets:row.sets,reps:row.reps,load:row.load,rpe:row.rpe,rest:row.rest,selected:true});
+ const lines=$('rawWorkout').value.split(/\r?\n/);let currentDay=null;const grouped=new Map();
+ for(const raw of lines){
+  const line=raw.trim();if(!line)continue;
+  const head=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s*[:：]?\s*$/i.exec(line);
+  if(head){currentDay=normalizeDay(head[1]);if(!grouped.has(currentDay))grouped.set(currentDay,{day:currentDay,name:'Workout',status:'Normal',exercises:[]});continue;}
+  const row=parseLine(line,currentDay);
+  if(!row)continue;
+  const key=row.day;
+  if(!grouped.has(key))grouped.set(key,{day:row.day,name:'Workout',status:'Normal',exercises:[]});
+  grouped.get(key).exercises.push({name:row.exercise,sets:null,reps:null,load:0,rpe:7,rest:90,selected:true});
  }
- parsed=[...grouped.values()];
- if(!parsed.length){$('previewCard').hidden=true;$('parseStatus').textContent='Tidak ada baris gerakan yang terbaca. Tulis nama hari, lalu satu gerakan per baris; set dan repetisi boleh dikosongkan.';return;}
- $('parseStatus').textContent=parsed.reduce((n,p)=>n+p.exercises.length,0)+' gerakan ditemukan dalam '+parsed.length+' hari. Hanya gerakan yang ditampilkan untuk diperiksa.';
+ parsed=[...grouped.values()].filter(p=>p.exercises.length);
+ if(!parsed.length){$('previewCard').hidden=true;$('parseStatus').textContent='Belum ada nama hari atau gerakan yang bisa dikelompokkan. Masukkan hari, lalu nama gerakan di baris berikutnya.';return;}
+ $('parseStatus').textContent=parsed.reduce((n,p)=>n+p.exercises.length,0)+' gerakan dikelompokkan ke '+parsed.length+' hari. Set dan repetisi dapat kamu isi sendiri.';
  $('previewCard').hidden=false;renderParsePreview();
 }
 function savePlans(){
