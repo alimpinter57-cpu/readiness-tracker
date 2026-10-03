@@ -149,9 +149,9 @@ function startRest(n){clearInterval(timer);secondsLeft=n;showTimer();timer=setIn
 function showTimer(){$('restSheet').hidden=false;$('restValue').textContent=String(Math.floor(secondsLeft/60)).padStart(2,'0')+':'+String(secondsLeft%60).padStart(2,'0');}
 function toast(s){const t=$('toast');t.textContent=s;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 function renderAnalytics(){
- const now=new Date(), start=new Date(now);start.setDate(now.getDate()-6);let total=0;const bars=[];
- for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=Store.todayStr(d);let v=0,sets=0;plans().forEach(p=>{const l=Store.getCustomWorkoutLog(ds,p.id);p.exercises.forEach((e,ei)=>Object.values(l[ei]||{}).map(getSet).filter(x=>x.done).forEach(x=>{sets++;v+=(x.reps||e.reps)*(x.load??e.load??0);}));});total+=v;bars.push({label:['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()],v,sets});}
- $('weekVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';
+ const now=new Date(), start=new Date(now);start.setDate(now.getDate()-6);let total=0,totalReps=0;const bars=[];
+ for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const ds=Store.todayStr(d);let v=0,sets=0;plans().forEach(p=>{const l=Store.getCustomWorkoutLog(ds,p.id);p.exercises.forEach((e,ei)=>Object.values(l[ei]||{}).map(getSet).filter(x=>x.done).forEach(x=>{sets++;const reps=x.reps||e.reps;totalReps+=reps;v+=reps*(x.load??e.load??0);}));});total+=v;bars.push({label:['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()],v,sets});}
+ $('weekVolume').textContent=Math.round(total).toLocaleString('id-ID')+' kg';const repsNode=$('weekReps');if(repsNode)repsNode.textContent=totalReps.toLocaleString('id-ID')+' repetisi tercatat (7 hari)';
  $('volumeChart').innerHTML=bars.map(b=>'<div class="volume-bar-wrap"><div class="volume-bar" title="'+Math.round(b.v)+' kg" style="height:'+Math.max(4,total?b.v/Math.max(...bars.map(x=>x.v),1)*70:4)+'px"></div><small>'+b.label+'</small></div>').join('');
  const setTotal=bars.reduce((n,b)=>n+b.sets,0);$('setChart').innerHTML=bars.map(b=>'<div class="volume-bar-wrap"><div class="volume-bar" title="'+b.sets+' set" style="height:'+Math.max(4,setTotal?b.sets/Math.max(...bars.map(x=>x.sets),1)*70:4)+'px"></div><small>'+b.label+'</small><small>'+b.sets+'</small></div>').join('');
 }
