@@ -204,6 +204,7 @@ const Store = (() => {
   };
   const deleteHabit = (id) => saveHabits(getHabits().filter(h => h.id !== id));
   const setHabitValue = (habitId, value) => saveHabitLog(todayStr(), habitId, value);
+  const setHabitValueForDate = (dateStr, habitId, value) => { if (value === null || value === undefined || value === '') { const logs=getHabitLogs(); if(logs[dateStr]) { delete logs[dateStr][habitId]; if(!Object.keys(logs[dateStr]).length) delete logs[dateStr]; write(HABIT_KEYS.LOGS,logs); } } else saveHabitLog(dateStr,habitId,value); };
   const getWorkoutPlans = () => read(HABIT_KEYS.WORKOUT_PLANS, []);
   const saveWorkoutPlans = (list) => write(HABIT_KEYS.WORKOUT_PLANS, list);
   const addWorkoutPlan = (plan) => {
@@ -238,7 +239,7 @@ const Store = (() => {
     PROGRAM, DAY_ORDER, WEEK_NOTES, WARMUP, RULES,
     getWorkoutStart, setWorkoutStart, currentWeek,
     getWorkoutLog, getLogFor, todayLog, toggleExercise, weekCompletionCount,
-    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue, getHabitWeekProgress,
+    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue, setHabitValueForDate, getHabitWeekProgress,
     getWorkoutPlans, addWorkoutPlan, updateWorkoutPlan, deleteWorkoutPlan, getCustomWorkoutLog, setCustomWorkoutLog,
   };
 })();
