@@ -18,8 +18,36 @@ function parseLine(raw, inheritedDay){
  const dayMatch=/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b\s*[:|–—-]?\s*/i.exec(line);
  if(dayMatch)line=line.slice(dayMatch[0].length).trim();
  if(!line)return null;
- // Parameter latihan sengaja tidak diekstrak; pengguna mengaturnya sendiri.
- return {day:normalizeDay(dayMatch?.[1])||inheritedDay||DAYS[(new Date().getDay()+6)%7],exercise:line,sets:null,reps:null,load:0,rest:90,rpe:7};
+
+ // Ekstrak parameter yang umum ditulis di teks, lalu sisakan nama gerakan saja.
+ // Contoh: "Push-up 3x10 30kg RPE 7 rest 60s" ->
+ // { exercise: "Push-up", sets: 3, reps: 10, load: 30, rpe: 7, rest: 60 }.
+ const setRep=/\b(\d{1,2})\s*[x×]\s*(\d{1,3})\b/i.exec(line);
+ const loadMatch=/\b(\d+(?:[.,]\d+)?)\s*kg\b/i.exec(line);
+ const restMatch=/(?:\brest\b|\bistirahat\b)\s*[:=]?\s*(\d{1,4})\s*(?:s|sec|detik)?\b/i.exec(line);
+ const rpeMatch=/\bRPE\s*[:=]?\s*(10|[1-9])\b/i.exec(line);
+
+ const sets=setRep?Number(setRep[1]):null;
+ const reps=setRep?Number(setRep[2]):null;
+ const load=loadMatch?Number(loadMatch[1].replace(',','.')):0;
+ const rest=restMatch?Number(restMatch[1]):90;
+ const rpe=rpeMatch?Number(rpeMatch[1]):7;
+
+ [setRep,loadMatch,restMatch,rpeMatch].filter(Boolean)
+   .sort((a,b)=>b.index-a.index)
+   .forEach(m=>{line=line.slice(0,m.index)+line.slice(m.index+m[0].length);});
+ line=line.replace(/\s{2,}/g,' ').replace(/[,:|–—-]+\s*$/,'').trim();
+ if(!line)return null;
+
+ return {
+  day:normalizeDay(dayMatch?.[1])||inheritedDay||DAYS[(new Date().getDay()+6)%7],
+  exercise:line,
+  sets,
+  reps,
+  load,
+  rest:Math.min(600,Math.max(15,rest)),
+  rpe:Math.min(10,Math.max(1,rpe))
+ };
 }
 function renderParsePreview(){
  const root=$('parsePreview');
@@ -60,11 +88,19 @@ function parseRaw(){
   if(!row)continue;
   const key=row.day;
   if(!grouped.has(key))grouped.set(key,{day:row.day,name:'Workout',status:'Normal',exercises:[]});
-  grouped.get(key).exercises.push({name:row.exercise,sets:null,reps:null,load:0,rpe:7,rest:90,selected:true});
+  grouped.get(key).exercises.push({
+   name:row.exercise,
+   sets:row.sets,
+   reps:row.reps,
+   load:row.load,
+   rpe:row.rpe,
+   rest:row.rest,
+   selected:true
+  });
  }
  parsed=[...grouped.values()].filter(p=>p.exercises.length);
  if(!parsed.length){$('previewCard').hidden=true;$('parseStatus').textContent='Belum ada nama hari atau gerakan yang bisa dikelompokkan. Masukkan hari, lalu nama gerakan di baris berikutnya.';return;}
- $('parseStatus').textContent=parsed.reduce((n,p)=>n+p.exercises.length,0)+' gerakan dikelompokkan ke '+parsed.length+' hari. Set dan repetisi dapat kamu isi sendiri.';
+ $('parseStatus').textContent=parsed.reduce((n,p)=>n+p.exercises.length,0)+' gerakan dikelompokkan ke '+parsed.length+' hari. Set/repetisi dari format 3x10 akan terisi otomatis; kamu tetap bisa mengubahnya.';
  $('previewCard').hidden=false;renderParsePreview();
 }
 function savePlans(){
