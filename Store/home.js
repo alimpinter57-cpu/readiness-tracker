@@ -34,7 +34,7 @@ function renderHabits(){
  let completed=0;
  habits.forEach(h=>{
   const v=Store.getHabitValue(date(),h.id), target=Number(h.target)||0;
-  const done=h.type==='binary'?v===true:(target>0&&Number(v)>=target);
+  const paused=Store.isHabitPaused(h,date());const done=h.type==='binary'?v===true:(target>0&&Number(v)>=target);
   if(done)completed++;
   const row=document.createElement('article');row.className='habit-row '+(h.color||'green');
   const iconEl=document.createElement('div');iconEl.className='habit-icon '+(h.color||'green');iconEl.textContent=h.icon||'🎯';
@@ -42,7 +42,7 @@ function renderHabits(){
   const meta=h.rule||typeLabel(h.type)+(target?' · target '+target+' '+(h.unit||''):'');
   info.innerHTML='<strong>'+esc(h.name)+'</strong><small>'+esc(meta)+'</small>';
   const control=document.createElement('div');control.className='habit-control';
-  if(h.type==='binary'){
+  if(paused){control.innerHTML='<span class="muted">⏸ Dijeda</span>';}else if(h.type==='binary'){
    const b=document.createElement('button');b.className='habit-check '+(done?'done':'');b.textContent=done?'✓':'○';b.title=done?'Selesai':'Belum selesai';b.onclick=()=>{Store.setHabitValue(h.id,!done);renderAll();};control.appendChild(b);
   } else if(h.type==='duration'){
    const mins=Number(v)||0,hh=Math.floor(mins/60),mm=mins%60,running=timers[h.id];
@@ -53,7 +53,7 @@ function renderHabits(){
    control.innerHTML='<div class="quantity-control"><button>−</button><strong>'+Number(v||0)+'</strong><button>+</button><span>' + esc(h.unit||'kali')+'</span></div>';
    const [minus,plus]=control.querySelectorAll('button');minus.onclick=()=>{Store.setHabitValue(h.id,Math.max(0,Number(v||0)-1));renderAll()};plus.onclick=()=>{Store.setHabitValue(h.id,Number(v||0)+1);renderAll()};
   }
-  const actions=document.createElement('div');actions.className='habit-actions';const history=document.createElement('button');history.textContent='Riwayat';history.onclick=()=>showHabitHistory(h);const e=document.createElement('button');e.textContent='Edit';e.onclick=()=>openModal(h);const del=document.createElement('button');del.textContent='×';del.onclick=()=>{if(confirm('Hapus kebiasaan ini?')){Store.deleteHabit(h.id);renderAll()}};actions.append(e,del);
+  const actions=document.createElement('div');actions.className='habit-actions';const pause=document.createElement('button');pause.textContent=paused?'Lanjutkan':'Jeda';pause.onclick=()=>{if(paused){Store.resumeHabit(h.id);}else{const reason=prompt('Apa alasan mendesak menjeda kebiasaan ini?');if(reason===null)return;if(!reason.trim()){alert('Tuliskan alasan singkat agar bisa dievaluasi nanti.');return;}Store.pauseHabit(h.id,reason);}renderAll();};actions.appendChild(pause);const history=document.createElement('button');history.textContent='Riwayat';history.onclick=()=>showHabitHistory(h);const e=document.createElement('button');e.textContent='Edit';e.onclick=()=>openModal(h);const del=document.createElement('button');del.textContent='×';del.onclick=()=>{if(confirm('Hapus kebiasaan ini?')){Store.deleteHabit(h.id);renderAll()}};actions.append(e,del);
   actions.append(history);row.append(iconEl,info,control,actions);list.appendChild(row);
  });
  $('habitSummary').textContent=habits.length?completed+' / '+habits.length+' selesai':'0 kebiasaan';

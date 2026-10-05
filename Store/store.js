@@ -184,6 +184,9 @@ const Store = (() => {
   const getHabits = () => read(HABIT_KEYS.HABITS, []);
   const saveHabits = (list) => write(HABIT_KEYS.HABITS, list);
   const getHabitLogs = () => read(HABIT_KEYS.LOGS, {});
+  const isHabitPaused = (h, ds=todayStr()) => (h.pauses||[]).some(p=>p.from<=ds&&(!p.to||ds<p.to));
+  const pauseHabit = (id, reason) => { const h=getHabits().find(x=>x.id===id); if(!h||isHabitPaused(h))return; updateHabit(id,{pauses:[...(h.pauses||[]),{from:todayStr(),to:null,reason:String(reason||'Keperluan mendesak').trim()}]}); };
+  const resumeHabit = id => { const h=getHabits().find(x=>x.id===id);if(!h)return;const pauses=[...(h.pauses||[])];for(let i=pauses.length-1;i>=0;i--){if(!pauses[i].to){pauses[i]={...pauses[i],to:todayStr()};break;}}updateHabit(id,{pauses});};
   const saveHabitLog = (dateStr, habitId, value) => {
     const logs = getHabitLogs();
     if (!logs[dateStr]) logs[dateStr] = {};
@@ -239,7 +242,7 @@ const Store = (() => {
     PROGRAM, DAY_ORDER, WEEK_NOTES, WARMUP, RULES,
     getWorkoutStart, setWorkoutStart, currentWeek,
     getWorkoutLog, getLogFor, todayLog, toggleExercise, weekCompletionCount,
-    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue, setHabitValueForDate, getHabitWeekProgress,
+    getHabits, addHabit, updateHabit, deleteHabit, getHabitValue, setHabitValue, setHabitValueForDate, getHabitWeekProgress, isHabitPaused, pauseHabit, resumeHabit,
     getWorkoutPlans, addWorkoutPlan, updateWorkoutPlan, deleteWorkoutPlan, getCustomWorkoutLog, setCustomWorkoutLog,
   };
 })();
