@@ -117,7 +117,12 @@ function openChoice(title, message, choices) {
 async function signUp(){
   const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value;
   const error=$('cloudAuthError'); error.textContent='';
-  const {data,error:err}=await client.auth.signUp({email,password});
+  const redirectTo = window.location.origin + window.location.pathname;
+  const {data,error:err}=await client.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: redirectTo }
+  });
   if(err){error.textContent=err.message;return;}
   if(!data.session){error.textContent='Akun dibuat. Periksa email untuk verifikasi, lalu masuk kembali.';return;}
   closeModal();
