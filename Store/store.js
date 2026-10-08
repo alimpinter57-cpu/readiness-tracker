@@ -23,7 +23,11 @@ const Store = (() => {
     } catch (e) { return fallback; }
   };
   const write = (key, value) => {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      // Cloud sync is optional. Store remains fully usable when offline/unconfigured.
+      if (typeof window !== 'undefined' && window.ReadinessCloud?.queueSync) window.ReadinessCloud.queueSync();
+    } catch (e) {}
   };
 
   // ---- Readiness check-ins ----
@@ -234,8 +238,33 @@ const Store = (() => {
     return values;
   };
 
+  // ---- Cloud snapshot helpers ----
+  const getSnapshot = () => {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || (!key.startsWith('readiness:') && !key.startsWith('workout:'))) continue;
+      try { data[key] = JSON.parse(localStorage.getItem(key)); }
+      catch { data[key] = localStorage.getItem(key); }
+    }
+    return { version: 1, schemaVersion: 1, data };
+  };
+  const replaceSnapshot = (snapshot) => {
+    const incoming = snapshot?.data && typeof snapshot.data === 'object' ? snapshot.data : {};
+    const existingKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('readiness:') || key.startsWith('workout:'))) existingKeys.push(key);
+    }
+    existingKeys.forEach(key => localStorage.removeItem(key));
+    Object.entries(incoming).forEach(([key, value]) => {
+      if (!key.startsWith('readiness:') && !key.startsWith('workout:')) return;
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+    });
+  };
+
   return {
-    todayStr, todayDayName,
+    todayStr, todayDayName, getSnapshot, replaceSnapshot,
     getCheckins, todayCheckin, saveCheckin,
     getCycleStart, resetCycle, cycleDayIndex, cycleCheckinCount,
     getExperiments, addExperiment,
