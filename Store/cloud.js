@@ -55,7 +55,7 @@ function injectStyles() {
   s.id = 'cloudSyncStyles';
   s.textContent = `
     .cloud-settings-button{flex:0 0 42px;margin-left:8px;width:42px;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:inherit;display:grid;place-items:center;cursor:pointer}
-    .cloud-settings-button span{display:block;width:19px;height:2px;background:currentColor;border-radius:2px;box-shadow:0 -6px 0 currentColor,0 6px 0 currentColor}
+    .cloud-menu-icon{font-size:22px;line-height:1;font-weight:700;display:block}
     .cloud-settings-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998}
     .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto}
     .cloud-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
@@ -90,7 +90,7 @@ function accountCard() {
   button.setAttribute('aria-label','Buka pengaturan');
   button.setAttribute('aria-expanded','false');
   button.title='Pengaturan';
-  button.innerHTML='<span aria-hidden="true"></span>';
+  button.innerHTML='<span class="cloud-menu-icon" aria-hidden="true">☰</span>';
   host.appendChild(button);
 
   const backdrop=document.createElement('div');
