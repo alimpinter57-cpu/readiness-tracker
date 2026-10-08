@@ -138,6 +138,30 @@ async function resetPassword(){
   $('cloudAuthError').textContent='Link reset password dikirim jika alamat dapat diproses. Periksa email.';
 }
 
+function openPasswordRecovery(){
+  closeModal();
+  const modal=document.createElement('div'); modal.id='cloudModal'; modal.className='cloud-modal-backdrop';
+  modal.innerHTML=`<section class="cloud-modal" role="dialog" aria-modal="true">
+    <h2>Buat password baru</h2>
+    <p>Atur password baru untuk akun Readiness.</p>
+    <form class="cloud-form" id="cloudRecoveryForm">
+      <label>Password baru<input id="cloudNewPassword" type="password" minlength="6" autocomplete="new-password" required></label>
+      <label>Ulangi password<input id="cloudNewPassword2" type="password" minlength="6" autocomplete="new-password" required></label>
+      <div class="cloud-error" id="cloudRecoveryError"></div>
+      <button class="btn btn-primary" type="submit">Simpan password</button>
+    </form>
+  </section>`;
+  document.body.appendChild(modal);
+  $('cloudRecoveryForm').onsubmit=async e=>{
+    e.preventDefault();
+    const a=$('cloudNewPassword').value,b=$('cloudNewPassword2').value;
+    if(a!==b){$('cloudRecoveryError').textContent='Password tidak sama.';return;}
+    const {error}=await client.auth.updateUser({password:a});
+    if(error){$('cloudRecoveryError').textContent=error.message;return;}
+    closeModal(); setStatus('Password berhasil diperbarui.','ok');
+  };
+}
+
 async function signOut(){ await client.auth.signOut(); }
 
 async function getCloudRow(){
@@ -249,7 +273,8 @@ async function init(){
   if(!window.supabase?.createClient){authReady=true;renderAccount();setStatus('Library Supabase belum termuat.','error');return;}
   client=window.supabase.createClient(CONFIG.url,CONFIG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   client.auth.onAuthStateChange(async(event,session)=>{
-    user=session?.user||null;authReady=true;renderAccount();
+    user=session?.user||null;
+    if(event==='PASSWORD_RECOVERY'){openPasswordRecovery();return;}authReady=true;renderAccount();
     if(event==='SIGNED_IN') {
       try{await initialSync();}catch(e){setStatus('Gagal memuat cloud: '+(e.message||'error'),'error');}
     }
