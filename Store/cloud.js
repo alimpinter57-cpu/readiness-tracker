@@ -14,6 +14,9 @@ let suppress = false;
 let syncTimer = null;
 let lastCloudUpdatedAt = null;
 let authReady = false;
+let initialSyncStarted = false;
+const emailCooldownMs = 60000;
+let emailCooldownUntil = 0;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -104,6 +107,28 @@ function openAuth(mode='login') {
 
 function closeModal(){ $('cloudModal')?.remove(); }
 
+function authErrorMessage(err) {
+  if (err?.code === 'over_email_send_rate_limit') return 'Pengiriman email sedang dibatasi. Tunggu beberapa saat sebelum mencoba lagi.';
+  if (err?.code === 'over_request_rate_limit') return 'Terlalu banyak percobaan. Tunggu beberapa menit sebelum mencoba lagi.';
+  if (err?.code === 'email_not_confirmed') return 'Email belum dikonfirmasi. Periksa inbox lalu coba lagi.';
+  if (err?.code === 'invalid_credentials') return 'Email atau password salah.';
+  return err?.message || 'Terjadi kesalahan. Coba lagi.';
+}
+
+function startEmailCooldown(button) {
+  if (!button) return;
+  const original = button.textContent;
+  emailCooldownUntil = Date.now() + emailCooldownMs;
+  button.disabled = true;
+  const tick = () => {
+    const remaining = Math.ceil((emailCooldownUntil - Date.now()) / 1000);
+    if (remaining <= 0) { button.disabled = false; button.textContent = original; return; }
+    button.textContent = \`Tunggu \${remaining}s…\`;
+    setTimeout(tick, 1000);
+  };
+  tick();
+}
+
 function openChoice(title, message, choices) {
   closeModal();
   const modal=document.createElement('div'); modal.id='cloudModal'; modal.className='cloud-modal-backdrop';
@@ -117,30 +142,52 @@ function openChoice(title, message, choices) {
 async function signUp(){
   const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value;
   const error=$('cloudAuthError'); error.textContent='';
+  const submit=$('cloudAuthForm')?.querySelector('button[type="submit"]');
+  if (Date.now() < emailCooldownUntil) { error.textContent='Tunggu sebentar sebelum mengirim email lagi.'; return; }
+  if (submit) submit.disabled=true;
   const redirectTo = window.location.origin + window.location.pathname;
   const {data,error:err}=await client.auth.signUp({
     email,
     password,
     options: { emailRedirectTo: redirectTo }
   });
-  if(err){error.textContent=err.message;return;}
-  if(!data.session){error.textContent='Akun dibuat. Periksa email untuk verifikasi, lalu masuk kembali.';return;}
+  if(err){
+    error.textContent=authErrorMessage(err);
+    if (err.code === 'over_email_send_rate_limit' || err.code === 'over_request_rate_limit') startEmailCooldown(submit);
+    else if (submit) submit.disabled=false;
+    return;
+  }
+  if(!data.session){
+    error.textContent='Akun dibuat. Periksa email untuk verifikasi, lalu masuk kembali.';
+    startEmailCooldown(submit);
+    return;
+  }
   closeModal();
 }
 
 async function signIn(){
   const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value, error=$('cloudAuthError'); error.textContent='';
   const {error:err}=await client.auth.signInWithPassword({email,password});
-  if(err){error.textContent=err.message;return;}
+  if(err){error.textContent=authErrorMessage(err);return;}
   closeModal();
 }
 
 async function resetPassword(){
   const email=$('cloudEmail')?.value.trim();
-  if(!email){$('cloudAuthError').textContent='Isi email terlebih dahulu.';return;}
+  const errorNode=$('cloudAuthError');
+  if(!email){errorNode.textContent='Isi email terlebih dahulu.';return;}
+  if (Date.now() < emailCooldownUntil) { errorNode.textContent='Tunggu sebentar sebelum mengirim email lagi.'; return; }
+  const button=$('cloudForgot');
+  button.disabled=true;
   const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
-  if(error){$('cloudAuthError').textContent=error.message;return;}
-  $('cloudAuthError').textContent='Link reset password dikirim jika alamat dapat diproses. Periksa email.';
+  if(error){
+    errorNode.textContent=authErrorMessage(error);
+    if (error.code === 'over_email_send_rate_limit' || error.code === 'over_request_rate_limit') startEmailCooldown(button);
+    else button.disabled=false;
+    return;
+  }
+  startEmailCooldown(button);
+  errorNode.textContent='Link reset password dikirim jika alamat dapat diproses. Periksa email.';
 }
 
 function openPasswordRecovery(){
@@ -277,17 +324,29 @@ async function init(){
   if(!configured){authReady=true;renderAccount();return;}
   if(!window.supabase?.createClient){authReady=true;renderAccount();setStatus('Library Supabase belum termuat.','error');return;}
   client=window.supabase.createClient(CONFIG.url,CONFIG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  client.auth.onAuthStateChange(async(event,session)=>{
+  client.auth.onAuthStateChange((event,session)=>{
     user=session?.user||null;
-    if(event==='PASSWORD_RECOVERY'){openPasswordRecovery();return;}authReady=true;renderAccount();
-    if(event==='SIGNED_IN') {
-      try{await initialSync();}catch(e){setStatus('Gagal memuat cloud: '+(e.message||'error'),'error');}
-    }
-    if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;setStatus('Keluar. Data lokal tetap ada.','warn');}
+    if(event==='PASSWORD_RECOVERY'){openPasswordRecovery();return;}
+    authReady=true;
+    renderAccount();
+    if(event==='SIGNED_IN') scheduleInitialSync();
+    if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
   });
   const {data}=await client.auth.getSession();
   user=data.session?.user||null;authReady=true;renderAccount();
-  if(user){try{await initialSync();}catch(e){setStatus('Gagal memuat cloud: '+(e.message||'error'),'error');}}
+  if(user) scheduleInitialSync();
+}
+
+function scheduleInitialSync(){
+  if(!user || initialSyncStarted) return;
+  initialSyncStarted=true;
+  setTimeout(async()=>{
+    try{await initialSync();}
+    catch(e){
+      initialSyncStarted=false;
+      setStatus('Gagal memuat cloud: '+(e.message||'error'),'error');
+    }
+  },0);
 }
 
 window.ReadinessCloud={queueSync,syncNow,getStatus:()=>({configured,userId:user?.id||null,syncing})};
