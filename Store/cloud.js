@@ -82,16 +82,24 @@ function injectStyles() {
 
 function accountCard() {
   const host = document.querySelector('header.topnav');
-  if (!host || $('cloudSettingsButton')) return;
-  const button=document.createElement('button');
-  button.id='cloudSettingsButton';
-  button.className='cloud-settings-button';
-  button.type='button';
-  button.setAttribute('aria-label','Buka pengaturan');
-  button.setAttribute('aria-expanded','false');
-  button.title='Pengaturan';
-  button.innerHTML='<span class="cloud-menu-icon" aria-hidden="true"></span>';
-  host.appendChild(button);
+  if (!host) return;
+
+  let button = $('cloudSettingsButton');
+  if (!button) {
+    button=document.createElement('button');
+    button.id='cloudSettingsButton';
+    button.className='cloud-settings-button';
+    button.type='button';
+    button.setAttribute('aria-label','Buka pengaturan');
+    button.setAttribute('aria-expanded','false');
+    button.title='Pengaturan';
+    button.innerHTML='<span class="cloud-menu-icon" aria-hidden="true"></span>';
+    host.appendChild(button);
+  } else {
+    button.classList.add('cloud-settings-button');
+  }
+
+  if ($('cloudSettingsDrawer')) return;
 
   const backdrop=document.createElement('div');
   backdrop.id='cloudSettingsBackdrop';
