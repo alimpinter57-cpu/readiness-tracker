@@ -54,9 +54,17 @@ function injectStyles() {
   const s = document.createElement('style');
   s.id = 'cloudSyncStyles';
   s.textContent = `
-    .cloud-account{margin:12px 0;padding:14px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.025)}
-    .cloud-account-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .cloud-account small{display:block;opacity:.7;margin-top:3px}
+    .cloud-settings-button{margin-left:auto;width:42px;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:inherit;display:grid;place-items:center;cursor:pointer}
+    .cloud-settings-button span{display:block;width:19px;height:2px;background:currentColor;border-radius:2px;box-shadow:0 -6px 0 currentColor,0 6px 0 currentColor}
+    .cloud-settings-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998}
+    .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto}
+    .cloud-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+    .cloud-settings-head h2{margin:0}.cloud-settings-section{padding:15px 0;border-top:1px solid rgba(255,255,255,.08)}
+    .cloud-settings-section:first-of-type{border-top:0}
+    .cloud-settings-label{font-size:.75rem;letter-spacing:.08em;opacity:.55;margin-bottom:10px}
+    .cloud-settings-account{padding:14px;border-radius:14px;background:rgba(255,255,255,.04)}
+    .cloud-settings-account strong{display:block}.cloud-settings-account small{display:block;opacity:.7;margin-top:4px}
+    .cloud-settings-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     .cloud-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .cloud-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10000;display:grid;place-items:center;padding:18px}
     .cloud-modal{width:min(520px,100%);padding:20px;border-radius:18px;background:#101722;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -74,12 +82,33 @@ function injectStyles() {
 
 function accountCard() {
   const host = document.querySelector('header.topnav');
-  if (!host || $('cloudAccount')) return;
-  const card = document.createElement('div');
-  card.id='cloudAccount';
-  card.className='cloud-account';
-  card.innerHTML='<div class="cloud-account-row"><div><strong id="cloudAccountTitle">Data akun</strong><small id="cloudAccountSub">Memeriksa cloud…</small></div><div class="cloud-actions" id="cloudActions"></div></div><div id="cloudSyncStatus" class="muted" aria-live="polite"></div>';
-  host.parentElement.insertBefore(card, host.nextSibling);
+  if (!host || $('cloudSettingsButton')) return;
+  const button=document.createElement('button');
+  button.id='cloudSettingsButton';
+  button.className='cloud-settings-button';
+  button.type='button';
+  button.setAttribute('aria-label','Buka pengaturan');
+  button.setAttribute('aria-expanded','false');
+  button.title='Pengaturan';
+  button.innerHTML='<span aria-hidden="true"></span>';
+  host.appendChild(button);
+
+  const backdrop=document.createElement('div');
+  backdrop.id='cloudSettingsBackdrop';
+  backdrop.className='cloud-settings-backdrop';
+  backdrop.hidden=true;
+  const drawer=document.createElement('aside');
+  drawer.id='cloudSettingsDrawer';
+  drawer.className='cloud-settings-drawer';
+  drawer.hidden=true;
+  drawer.setAttribute('aria-label','Pengaturan');
+  drawer.innerHTML='<div class="cloud-settings-head"><div><span class="section-kicker">PENGATURAN</span><h2>Akun & data</h2></div><button class="icon-close" id="cloudSettingsClose" type="button" aria-label="Tutup">×</button></div><section class="cloud-settings-section"><div class="cloud-settings-label">AKUN</div><div class="cloud-settings-account"><strong id="cloudAccountTitle">Data akun</strong><small id="cloudAccountSub">Memeriksa cloud…</small><div class="cloud-settings-actions" id="cloudActions"></div></div></section><section class="cloud-settings-section"><div class="cloud-settings-label">DATA & SINKRONISASI</div><div class="cloud-settings-account"><strong>Sinkronisasi</strong><small id="cloudSyncStatus">Memeriksa status data…</small><div class="cloud-settings-actions"><button class="mini-action" id="cloudSyncNowSettings" type="button">Sync sekarang</button></div></div></section><section class="cloud-settings-section"><div class="cloud-settings-label">LAINNYA</div><p class="muted">Pengaturan data, backup, dan preferensi aplikasi akan ditempatkan di sini.</p></section>';
+  document.body.appendChild(backdrop);
+  document.body.appendChild(drawer);
+  const close=()=>{drawer.hidden=true;backdrop.hidden=true;button.setAttribute('aria-expanded','false');};
+  const open=()=>{drawer.hidden=false;backdrop.hidden=false;button.setAttribute('aria-expanded','true');};
+  button.onclick=open; backdrop.onclick=close; $('cloudSettingsClose').onclick=close;
+  drawer.addEventListener('click',e=>{if(e.target.closest('#cloudSettingsClose'))close();});
 }
 
 function openAuth(mode='login') {
@@ -330,10 +359,12 @@ function renderAccount(){
   }
   if(!authReady){title.textContent='Akun';sub.textContent='Memuat…';actions.innerHTML='';return;}
   if(user){
-    title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudSyncNow">Sync sekarang</button><button class="mini-action" id="cloudLogout">Keluar</button>';
-    $('cloudSyncNow').onclick=syncNow;$('cloudLogout').onclick=signOut;
+    title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar</button>';
+    $('cloudLogout').onclick=signOut;
+    const sync=$('cloudSyncNowSettings'); if(sync){sync.disabled=false;sync.onclick=syncNow;}
   }else{
     title.textContent='Data cloud';sub.textContent='Simpan data dan pulihkan di perangkat lain.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
+    const sync=$('cloudSyncNowSettings'); if(sync) sync.disabled=true;
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
