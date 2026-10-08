@@ -196,7 +196,21 @@ function openChoice(title, message, choices) {
   modal.innerHTML=`<section class="cloud-modal" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(message)}</p><div class="cloud-choice" id="cloudChoices"></div><button class="mini-action" id="cloudChoiceCancel">Batal</button></section>`;
   document.body.appendChild(modal);
   const box=$('cloudChoices');
-  choices.forEach(c=>{const b=document.createElement('button');b.innerHTML='<strong>'+esc(c.title)+'</strong><small>'+esc(c.description)+'</small>';b.onclick=async()=>{b.disabled=true;await c.action();};box.appendChild(b);});
+  choices.forEach(c=>{
+    const b=document.createElement('button');
+    b.innerHTML='<strong>'+esc(c.title)+'</strong><small>'+esc(c.description)+'</small>';
+    b.onclick=async()=>{
+      b.disabled=true;
+      try{
+        await c.action();
+      }catch(e){
+        b.disabled=false;
+        setStatus('Gagal sinkron: '+cloudErrorMessage(e),'error');
+        console.error('[Readiness Cloud]',e);
+      }
+    };
+    box.appendChild(b);
+  });
   $('cloudChoiceCancel').onclick=closeModal;
 }
 
@@ -282,6 +296,13 @@ async function getCloudRow(){
   return client.from('readiness_data').select('data,schema_version,updated_at').eq('user_id',user.id).maybeSingle();
 }
 
+function cloudErrorMessage(err) {
+  const message = String(err?.message || err || 'Kesalahan cloud');
+  const code = err?.code ? ' [' + err.code + ']' : '';
+  const details = err?.details ? ' — ' + err.details : '';
+  return message + code + details;
+}
+
 async function uploadSnapshot(snapshot, expectedUpdatedAt=null){
   if(!user)throw new Error('Belum login.');
   if(expectedUpdatedAt){
@@ -296,7 +317,12 @@ async function uploadSnapshot(snapshot, expectedUpdatedAt=null){
     data:snapshot.data,
     schema_version:snapshot.schemaVersion||1
   },{onConflict:'user_id'}).select('updated_at').single();
-  if(error)throw error;
+  if(error){
+    const e=new Error(cloudErrorMessage(error));
+    e.code=error.code;
+    e.details=error.details;
+    throw e;
+  }
   lastCloudUpdatedAt=data.updated_at;
 }
 
@@ -351,7 +377,8 @@ async function syncNow(){
     if(e.message==='CONFLICT'){
       setStatus('Konflik: cloud berubah di perangkat lain. Tidak ada data yang ditimpa.','error');
     }else{
-      setStatus('Belum tersinkron • tetap aman di perangkat.','warn');
+      setStatus('Belum tersinkron: '+cloudErrorMessage(e),'error');
+      console.error('[Readiness Cloud sync]',e);
     }
   }finally{syncing=false;}
 }
