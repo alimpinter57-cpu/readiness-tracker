@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f1a"><link rel="manifest" href="manifest.webmanifest">
-<title>Readiness — Habit Dashboard</title><link rel="stylesheet" href="Store/style.css?v=20261008-4"><link rel="stylesheet" href="Store/enhancements.css">
+<title>Readiness — Habit Dashboard</title><link rel="stylesheet" href="Store/style.css?v=20261008-5"><link rel="stylesheet" href="Store/enhancements.css">
 </head>
 <body><div class="app-shell">
 <header class="topnav">
 <a class="brand" href="index.html"><span class="brand-mark">R</span><span>Readiness<small>HABIT SYSTEM</small></span></a>
 <nav class="tabs"><a href="index.html" class="active">Hari ini</a><a href="summary.html">Ringkasan</a><a href="latihan/latihan.html">Workout</a></nav><button id="cloudSettingsButton" class="cloud-settings-button" type="button" aria-label="Buka pengaturan" aria-expanded="false" title="Pengaturan"><span class="cloud-menu-icon" aria-hidden="true"></span></button>
-</header>
+</header><div id="cloudSettingsBackdrop" class="cloud-settings-backdrop" hidden></div><aside id="cloudSettingsDrawer" class="cloud-settings-drawer" hidden aria-label="Pengaturan"><div class="cloud-settings-head"><div><span class="section-kicker">PENGATURAN</span><h2>Akun & data</h2></div><button class="icon-close" id="cloudSettingsClose" type="button" aria-label="Tutup">×</button></div><section class="cloud-settings-section"><div class="cloud-settings-label">AKUN</div><div class="cloud-settings-account"><strong id="cloudAccountTitle">Akun</strong><small id="cloudAccountSub">Memeriksa status akun…</small><div class="cloud-settings-actions" id="cloudActions"></div></div></section><section class="cloud-settings-section"><div class="cloud-settings-label">DATA & SINKRONISASI</div><div class="cloud-settings-account"><strong>Sinkronisasi cloud</strong><small id="cloudSyncStatus">Memeriksa status data…</small><div class="cloud-settings-actions"><button class="mini-action" id="cloudSyncNowSettings" type="button">Sync sekarang</button></div></div></section><section class="cloud-settings-section"><div class="cloud-settings-label">DATA</div><div class="cloud-settings-account"><strong>Data perangkat</strong><small>Data tetap tersimpan di perangkat saat offline. Backup dan pengaturan data lain dapat ditempatkan di sini.</small></div></section></aside>
 <main class="wrap">
 <section class="hero-card card">
 <div class="hero-glow"></div>
