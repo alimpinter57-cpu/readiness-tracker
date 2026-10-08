@@ -57,7 +57,10 @@ function injectStyles() {
     .cloud-settings-button{flex:0 0 42px;margin-left:8px;width:42px;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:inherit;display:grid;place-items:center;cursor:pointer}
     .cloud-menu-icon{width:22px;height:18px;display:block;flex:0 0 22px;background:linear-gradient(currentColor,currentColor) center 0/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 50%/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 100%/100% 2px no-repeat}
     .cloud-settings-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998}
-    .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto}
+    .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto;display:none}
+    .cloud-settings-drawer[hidden]{display:none!important}
+    .cloud-settings-backdrop[hidden]{display:none!important}
+    body.cloud-drawer-open{overflow:hidden}
     .cloud-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
     .cloud-settings-head h2{margin:0}.cloud-settings-section{padding:15px 0;border-top:1px solid rgba(255,255,255,.08)}
     .cloud-settings-section:first-of-type{border-top:0}
@@ -100,11 +103,21 @@ function accountCard() {
   const drawer=$('cloudSettingsDrawer'),backdrop=$('cloudSettingsBackdrop'),closeButton=$('cloudSettingsClose');
   if(!drawer||!backdrop||!closeButton)return;
   if(button.dataset.bound==='1')return;
-  const close=()=>{drawer.hidden=true;backdrop.hidden=true;button.setAttribute('aria-expanded','false');};
-  const open=()=>{drawer.hidden=false;backdrop.hidden=false;button.setAttribute('aria-expanded','true');};
+  const setDrawer=(open)=>{
+    drawer.hidden=!open;
+    backdrop.hidden=!open;
+    drawer.style.display=open?'block':'none';
+    backdrop.style.display=open?'block':'none';
+    button.setAttribute('aria-expanded',String(open));
+    document.body.classList.toggle('cloud-drawer-open',open);
+  };
+  const close=()=>setDrawer(false);
+  const open=()=>setDrawer(true);
+  setDrawer(false);
   button.addEventListener('click',open);
   backdrop.addEventListener('click',close);
   closeButton.addEventListener('click',close);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
   button.dataset.bound='1';
 }
 function openAuth(mode='login') {
