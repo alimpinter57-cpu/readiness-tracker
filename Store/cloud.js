@@ -390,8 +390,24 @@ function queueSync(){
   syncTimer=setTimeout(syncNow,1200);
 }
 
+function bindSyncButton(){
+  const sync=$('cloudSyncNowSettings');
+  if(!sync || sync.dataset.cloudBound==='1') return;
+  sync.dataset.cloudBound='1';
+  sync.disabled=false;
+  sync.onclick=async()=>{
+    if(!user){
+      setStatus('Belum login. Hubungkan akun Google terlebih dahulu.','warn');
+      openAuth('login');
+      return;
+    }
+    await syncNow();
+  };
+}
+
 function renderAccount(){
   accountCard();
+  bindSyncButton();
   const title=$('cloudAccountTitle'), sub=$('cloudAccountSub'), actions=$('cloudActions');
   if(!title||!sub||!actions)return;
   if(!configured){
@@ -401,10 +417,8 @@ function renderAccount(){
   if(user){
     title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar</button>';
     $('cloudLogout').onclick=signOut;
-    const sync=$('cloudSyncNowSettings'); if(sync){sync.disabled=false;sync.onclick=syncNow;}
   }else{
     title.textContent='Data cloud';sub.textContent='Simpan data dan pulihkan di perangkat lain.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
-    const sync=$('cloudSyncNowSettings'); if(sync) sync.disabled=true;
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
@@ -422,7 +436,11 @@ async function init(){
     if(event==='SIGNED_IN') scheduleInitialSync();
     if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
   });
-  const {data}=await client.auth.getSession();
+  const {data, error:sessionError}=await client.auth.getSession();
+  if(sessionError){
+    console.error('[Readiness Cloud session]',sessionError);
+    setStatus('Gagal membaca sesi akun: '+cloudErrorMessage(sessionError),'error');
+  }
   user=data.session?.user||null;authReady=true;renderAccount();
   if(user) scheduleInitialSync();
 }
