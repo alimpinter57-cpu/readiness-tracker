@@ -167,7 +167,7 @@ function startEmailCooldown(button) {
   const tick = () => {
     const remaining = Math.ceil((emailCooldownUntil - Date.now()) / 1000);
     if (remaining <= 0) { button.disabled = false; button.textContent = original; return; }
-    button.textContent = \`Tunggu \${remaining}s…\`;
+    button.textContent = `Tunggu ${remaining}s…`;
     setTimeout(tick, 1000);
   };
   tick();
