@@ -63,6 +63,7 @@ function injectStyles() {
     .cloud-modal h2{margin:0 0 8px}.cloud-modal p{line-height:1.5;opacity:.82}
     .cloud-form{display:grid;gap:10px}.cloud-form input{width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0b111b;color:inherit}
     .cloud-form label{display:grid;gap:5px;font-size:.9rem}
+    .cloud-divider{text-align:center;opacity:.55;font-size:.85rem;margin:2px 0}
     .cloud-error{min-height:1.3em;color:#ff9d9d;font-size:.9rem}
     .cloud-choice{display:grid;gap:9px;margin-top:14px}.cloud-choice button{text-align:left;padding:13px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:inherit;cursor:pointer}
     .cloud-choice strong{display:block}.cloud-choice small{opacity:.7}
@@ -92,6 +93,8 @@ function openAuth(mode='login') {
       <label>Email<input id="cloudEmail" type="email" autocomplete="email" required></label>
       <label>Password<input id="cloudPassword" type="password" autocomplete="${mode==='signup'?'new-password':'current-password'}" minlength="6" required></label>
       <div class="cloud-error" id="cloudAuthError"></div>
+      <button type="button" class="btn btn-primary" id="cloudGoogle">Lanjut dengan Google</button>
+      <div class="cloud-divider">atau gunakan email</div>
       <div class="cloud-actions"><button type="button" class="btn btn-secondary" id="cloudSwitch">${mode==='signup'?'Sudah punya akun':'Buat akun'}</button><button class="btn btn-primary" type="submit">${mode==='signup'?'Daftar':'Masuk'}</button></div>
       <button type="button" class="mini-action" id="cloudForgot">Lupa password</button>
       <button type="button" class="mini-action" id="cloudClose">Batal</button>
@@ -99,6 +102,7 @@ function openAuth(mode='login') {
   </section>`;
   document.body.appendChild(modal);
   $('cloudClose').onclick=closeModal;
+  $('cloudGoogle').onclick=signInWithGoogle;
   $('cloudSwitch').onclick=()=>openAuth(mode==='signup'?'login':'signup');
   $('cloudForgot').onclick=resetPassword;
   $('cloudAuthForm').onsubmit=e=>{e.preventDefault(); mode==='signup'?signUp():signIn();};
@@ -106,6 +110,21 @@ function openAuth(mode='login') {
 }
 
 function closeModal(){ $('cloudModal')?.remove(); }
+
+async function signInWithGoogle(){
+  const button=$('cloudGoogle'), error=$('cloudAuthError');
+  if(button) button.disabled=true;
+  if(error) error.textContent='';
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error:err}=await client.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo}
+  });
+  if(err){
+    if(error) error.textContent=authErrorMessage(err);
+    if(button) button.disabled=false;
+  }
+}
 
 function authErrorMessage(err) {
   if (err?.code === 'over_email_send_rate_limit') return 'Pengiriman email sedang dibatasi. Tunggu beberapa saat sebelum mencoba lagi.';
