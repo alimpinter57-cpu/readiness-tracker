@@ -396,5 +396,12 @@ function scheduleInitialSync(){
 }
 
 window.ReadinessCloud={queueSync,syncNow,getStatus:()=>({configured,userId:user?.id||null,syncing})};
-document.addEventListener('DOMContentLoaded',init);
+
+// cloud.js is loaded at the end of each page, but handle both normal loads
+// and cases where this script executes after DOMContentLoaded (cache/navigation).
+if(document.readyState==='loading') {
+  document.addEventListener('DOMContentLoaded',init,{once:true});
+} else {
+  init();
+}
 })();
