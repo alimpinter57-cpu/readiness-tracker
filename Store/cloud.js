@@ -333,7 +333,7 @@ function renderAccount(){
     title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudSyncNow">Sync sekarang</button><button class="mini-action" id="cloudLogout">Keluar</button>';
     $('cloudSyncNow').onclick=syncNow;$('cloudLogout').onclick=signOut;
   }else{
-    title.textContent='Data cloud';sub.textContent='Login untuk melindungi data dari hilangnya site data.';actions.innerHTML='<button class="btn btn-primary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Buat akun</button>'; $('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
+    title.textContent='Data cloud';sub.textContent='Simpan data dan pulihkan di perangkat lain.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
