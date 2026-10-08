@@ -165,6 +165,10 @@ async function signInWithGoogle(){
 }
 
 function authErrorMessage(err) {
+  const message = String(err?.message || '').toLowerCase();
+  if (message.includes('provider is not enabled') || message.includes('unsupported provider')) {
+    return 'Google Login belum diaktifkan di Supabase. Aktifkan Auth → Providers → Google, lalu isi Client ID dan Client Secret Google.';
+  }
   if (err?.code === 'over_email_send_rate_limit') return 'Pengiriman email sedang dibatasi. Tunggu beberapa saat sebelum mencoba lagi.';
   if (err?.code === 'over_request_rate_limit') return 'Terlalu banyak percobaan. Tunggu beberapa menit sebelum mencoba lagi.';
   if (err?.code === 'email_not_confirmed') return 'Email belum dikonfirmasi. Periksa inbox lalu coba lagi.';
