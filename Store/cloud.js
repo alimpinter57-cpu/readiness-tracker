@@ -55,11 +55,7 @@ function injectStyles() {
   s.id = 'cloudSyncStyles';
   s.textContent = `
     .cloud-settings-button{flex:0 0 42px;margin-left:8px;width:42px;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:inherit;display:grid;place-items:center;cursor:pointer}
-    .cloud-menu-icon{width:22px;height:18px;display:block;position:relative;flex:0 0 22px}
-    .cloud-menu-icon::before,.cloud-menu-icon::after,.cloud-menu-icon{background:linear-gradient(currentColor,currentColor) center 0/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 50%/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 100%/100% 2px no-repeat}
-    .cloud-menu-icon::before,.cloud-menu-icon::after{content:"";position:absolute;left:0;width:100%;height:2px;background:currentColor}
-    .cloud-menu-icon::before{top:0}
-    .cloud-menu-icon::after{bottom:0}
+    .cloud-menu-icon{width:22px;height:18px;display:block;flex:0 0 22px;background:linear-gradient(currentColor,currentColor) center 0/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 50%/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 100%/100% 2px no-repeat}
     .cloud-settings-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998}
     .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto}
     .cloud-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
