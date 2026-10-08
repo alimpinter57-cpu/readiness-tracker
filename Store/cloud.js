@@ -81,11 +81,11 @@ function injectStyles() {
 }
 
 function accountCard() {
-  const host = document.querySelector('header.topnav');
-  if (!host) return;
+  const host=document.querySelector('header.topnav');
+  if(!host)return;
 
-  let button = $('cloudSettingsButton');
-  if (!button) {
+  let button=$('cloudSettingsButton');
+  if(!button){
     button=document.createElement('button');
     button.id='cloudSettingsButton';
     button.className='cloud-settings-button';
@@ -95,30 +95,18 @@ function accountCard() {
     button.title='Pengaturan';
     button.innerHTML='<span class="cloud-menu-icon" aria-hidden="true"></span>';
     host.appendChild(button);
-  } else {
-    button.classList.add('cloud-settings-button');
   }
 
-  if ($('cloudSettingsDrawer')) return;
-
-  const backdrop=document.createElement('div');
-  backdrop.id='cloudSettingsBackdrop';
-  backdrop.className='cloud-settings-backdrop';
-  backdrop.hidden=true;
-  const drawer=document.createElement('aside');
-  drawer.id='cloudSettingsDrawer';
-  drawer.className='cloud-settings-drawer';
-  drawer.hidden=true;
-  drawer.setAttribute('aria-label','Pengaturan');
-  drawer.innerHTML='<div class="cloud-settings-head"><div><span class="section-kicker">PENGATURAN</span><h2>Akun & data</h2></div><button class="icon-close" id="cloudSettingsClose" type="button" aria-label="Tutup">×</button></div><section class="cloud-settings-section"><div class="cloud-settings-label">AKUN</div><div class="cloud-settings-account"><strong id="cloudAccountTitle">Data akun</strong><small id="cloudAccountSub">Memeriksa cloud…</small><div class="cloud-settings-actions" id="cloudActions"></div></div></section><section class="cloud-settings-section"><div class="cloud-settings-label">DATA & SINKRONISASI</div><div class="cloud-settings-account"><strong>Sinkronisasi</strong><small id="cloudSyncStatus">Memeriksa status data…</small><div class="cloud-settings-actions"><button class="mini-action" id="cloudSyncNowSettings" type="button">Sync sekarang</button></div></div></section><section class="cloud-settings-section"><div class="cloud-settings-label">LAINNYA</div><p class="muted">Pengaturan data, backup, dan preferensi aplikasi akan ditempatkan di sini.</p></section>';
-  document.body.appendChild(backdrop);
-  document.body.appendChild(drawer);
+  const drawer=$('cloudSettingsDrawer'),backdrop=$('cloudSettingsBackdrop'),closeButton=$('cloudSettingsClose');
+  if(!drawer||!backdrop||!closeButton)return;
+  if(button.dataset.bound==='1')return;
   const close=()=>{drawer.hidden=true;backdrop.hidden=true;button.setAttribute('aria-expanded','false');};
   const open=()=>{drawer.hidden=false;backdrop.hidden=false;button.setAttribute('aria-expanded','true');};
-  button.onclick=open; backdrop.onclick=close; $('cloudSettingsClose').onclick=close;
-  drawer.addEventListener('click',e=>{if(e.target.closest('#cloudSettingsClose'))close();});
+  button.addEventListener('click',open);
+  backdrop.addEventListener('click',close);
+  closeButton.addEventListener('click',close);
+  button.dataset.bound='1';
 }
-
 function openAuth(mode='login') {
   closeModal();
   const modal=document.createElement('div');
