@@ -43,4 +43,25 @@
 </div></div>
 <footer class="footer-note">Semua data kebiasaan tersimpan di perangkat ini. Sistem ini membantu membangun pola, bukan diagnosis medis.</footer>
 </main></div>
-<script src="Store/store.js"></script><script src="Store/supabase-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="Store/cloud.js?v=20261008-6"></script><script src="Store/home.js"></script></body></html>
+<script src="Store/store.js"></script><script src="Store/supabase-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="Store/cloud.js?v=20261008-6"></script><script src="Store/home.js"></script>
+<script>
+(() => {
+  const button = document.getElementById('cloudSettingsButton');
+  const drawer = document.getElementById('cloudSettingsDrawer');
+  const backdrop = document.getElementById('cloudSettingsBackdrop');
+  const close = document.getElementById('cloudSettingsClose');
+  if (!button || !drawer || !backdrop || !close || button.dataset.directBound === '1') return;
+  const setOpen = open => {
+    drawer.hidden = !open;
+    backdrop.hidden = !open;
+    drawer.style.display = open ? 'block' : 'none';
+    backdrop.style.display = open ? 'block' : 'none';
+    button.setAttribute('aria-expanded', String(open));
+  };
+  setOpen(false);
+  button.addEventListener('click', () => setOpen(true));
+  close.addEventListener('click', () => setOpen(false));
+  backdrop.addEventListener('click', () => setOpen(false));
+  button.dataset.directBound = '1';
+})();
+</script></body></html>
