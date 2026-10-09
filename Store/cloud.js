@@ -57,7 +57,10 @@ function injectStyles() {
     .cloud-settings-button{flex:0 0 42px;margin-left:8px;width:42px;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.04);color:inherit;display:grid;place-items:center;cursor:pointer}
     .cloud-menu-icon{width:22px;height:18px;display:block;flex:0 0 22px;background:linear-gradient(currentColor,currentColor) center 0/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 50%/100% 2px no-repeat,linear-gradient(currentColor,currentColor) center 100%/100% 2px no-repeat}
     .cloud-settings-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998}
-    .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto}
+    .cloud-settings-drawer{position:fixed;top:0;right:0;width:min(390px,92vw);height:100%;box-sizing:border-box;padding:22px 18px 28px;background:#101722;border-left:1px solid rgba(255,255,255,.1);box-shadow:-18px 0 50px rgba(0,0,0,.3);z-index:9999;overflow:auto;display:none}
+    .cloud-settings-drawer[hidden]{display:none!important}
+    .cloud-settings-backdrop[hidden]{display:none!important}
+    body.cloud-drawer-open{overflow:hidden}
     .cloud-settings-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
     .cloud-settings-head h2{margin:0}.cloud-settings-section{padding:15px 0;border-top:1px solid rgba(255,255,255,.08)}
     .cloud-settings-section:first-of-type{border-top:0}
@@ -100,11 +103,21 @@ function accountCard() {
   const drawer=$('cloudSettingsDrawer'),backdrop=$('cloudSettingsBackdrop'),closeButton=$('cloudSettingsClose');
   if(!drawer||!backdrop||!closeButton)return;
   if(button.dataset.bound==='1')return;
-  const close=()=>{drawer.hidden=true;backdrop.hidden=true;button.setAttribute('aria-expanded','false');};
-  const open=()=>{drawer.hidden=false;backdrop.hidden=false;button.setAttribute('aria-expanded','true');};
+  const setDrawer=(open)=>{
+    drawer.hidden=!open;
+    backdrop.hidden=!open;
+    drawer.style.display=open?'block':'none';
+    backdrop.style.display=open?'block':'none';
+    button.setAttribute('aria-expanded',String(open));
+    document.body.classList.toggle('cloud-drawer-open',open);
+  };
+  const close=()=>setDrawer(false);
+  const open=()=>setDrawer(true);
+  setDrawer(false);
   button.addEventListener('click',open);
   backdrop.addEventListener('click',close);
   closeButton.addEventListener('click',close);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
   button.dataset.bound='1';
 }
 function openAuth(mode='login') {
@@ -152,6 +165,10 @@ async function signInWithGoogle(){
 }
 
 function authErrorMessage(err) {
+  const message = String(err?.message || '').toLowerCase();
+  if (message.includes('provider is not enabled') || message.includes('unsupported provider')) {
+    return 'Google Login belum diaktifkan di Supabase. Aktifkan Auth → Providers → Google, lalu isi Client ID dan Client Secret Google.';
+  }
   if (err?.code === 'over_email_send_rate_limit') return 'Pengiriman email sedang dibatasi. Tunggu beberapa saat sebelum mencoba lagi.';
   if (err?.code === 'over_request_rate_limit') return 'Terlalu banyak percobaan. Tunggu beberapa menit sebelum mencoba lagi.';
   if (err?.code === 'email_not_confirmed') return 'Email belum dikonfirmasi. Periksa inbox lalu coba lagi.';
@@ -167,7 +184,7 @@ function startEmailCooldown(button) {
   const tick = () => {
     const remaining = Math.ceil((emailCooldownUntil - Date.now()) / 1000);
     if (remaining <= 0) { button.disabled = false; button.textContent = original; return; }
-    button.textContent = \`Tunggu \${remaining}s…\`;
+    button.textContent = `Tunggu ${remaining}s…`;
     setTimeout(tick, 1000);
   };
   tick();
@@ -179,7 +196,21 @@ function openChoice(title, message, choices) {
   modal.innerHTML=`<section class="cloud-modal" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(message)}</p><div class="cloud-choice" id="cloudChoices"></div><button class="mini-action" id="cloudChoiceCancel">Batal</button></section>`;
   document.body.appendChild(modal);
   const box=$('cloudChoices');
-  choices.forEach(c=>{const b=document.createElement('button');b.innerHTML='<strong>'+esc(c.title)+'</strong><small>'+esc(c.description)+'</small>';b.onclick=async()=>{b.disabled=true;await c.action();};box.appendChild(b);});
+  choices.forEach(c=>{
+    const b=document.createElement('button');
+    b.innerHTML='<strong>'+esc(c.title)+'</strong><small>'+esc(c.description)+'</small>';
+    b.onclick=async()=>{
+      b.disabled=true;
+      try{
+        await c.action();
+      }catch(e){
+        b.disabled=false;
+        setStatus('Gagal sinkron: '+cloudErrorMessage(e),'error');
+        console.error('[Readiness Cloud]',e);
+      }
+    };
+    box.appendChild(b);
+  });
   $('cloudChoiceCancel').onclick=closeModal;
 }
 
@@ -265,6 +296,13 @@ async function getCloudRow(){
   return client.from('readiness_data').select('data,schema_version,updated_at').eq('user_id',user.id).maybeSingle();
 }
 
+function cloudErrorMessage(err) {
+  const message = String(err?.message || err || 'Kesalahan cloud');
+  const code = err?.code ? ' [' + err.code + ']' : '';
+  const details = err?.details ? ' — ' + err.details : '';
+  return message + code + details;
+}
+
 async function uploadSnapshot(snapshot, expectedUpdatedAt=null){
   if(!user)throw new Error('Belum login.');
   if(expectedUpdatedAt){
@@ -279,7 +317,12 @@ async function uploadSnapshot(snapshot, expectedUpdatedAt=null){
     data:snapshot.data,
     schema_version:snapshot.schemaVersion||1
   },{onConflict:'user_id'}).select('updated_at').single();
-  if(error)throw error;
+  if(error){
+    const e=new Error(cloudErrorMessage(error));
+    e.code=error.code;
+    e.details=error.details;
+    throw e;
+  }
   lastCloudUpdatedAt=data.updated_at;
 }
 
@@ -334,7 +377,8 @@ async function syncNow(){
     if(e.message==='CONFLICT'){
       setStatus('Konflik: cloud berubah di perangkat lain. Tidak ada data yang ditimpa.','error');
     }else{
-      setStatus('Belum tersinkron • tetap aman di perangkat.','warn');
+      setStatus('Belum tersinkron: '+cloudErrorMessage(e),'error');
+      console.error('[Readiness Cloud sync]',e);
     }
   }finally{syncing=false;}
 }
@@ -346,8 +390,24 @@ function queueSync(){
   syncTimer=setTimeout(syncNow,1200);
 }
 
+function bindSyncButton(){
+  const sync=$('cloudSyncNowSettings');
+  if(!sync || sync.dataset.cloudBound==='1') return;
+  sync.dataset.cloudBound='1';
+  sync.disabled=false;
+  sync.onclick=async()=>{
+    if(!user){
+      setStatus('Belum login. Hubungkan akun Google terlebih dahulu.','warn');
+      openAuth('login');
+      return;
+    }
+    await syncNow();
+  };
+}
+
 function renderAccount(){
   accountCard();
+  bindSyncButton();
   const title=$('cloudAccountTitle'), sub=$('cloudAccountSub'), actions=$('cloudActions');
   if(!title||!sub||!actions)return;
   if(!configured){
@@ -357,10 +417,8 @@ function renderAccount(){
   if(user){
     title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar</button>';
     $('cloudLogout').onclick=signOut;
-    const sync=$('cloudSyncNowSettings'); if(sync){sync.disabled=false;sync.onclick=syncNow;}
   }else{
     title.textContent='Data cloud';sub.textContent='Simpan data dan pulihkan di perangkat lain.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
-    const sync=$('cloudSyncNowSettings'); if(sync) sync.disabled=true;
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
@@ -378,7 +436,11 @@ async function init(){
     if(event==='SIGNED_IN') scheduleInitialSync();
     if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
   });
-  const {data}=await client.auth.getSession();
+  const {data, error:sessionError}=await client.auth.getSession();
+  if(sessionError){
+    console.error('[Readiness Cloud session]',sessionError);
+    setStatus('Gagal membaca sesi akun: '+cloudErrorMessage(sessionError),'error');
+  }
   user=data.session?.user||null;authReady=true;renderAccount();
   if(user) scheduleInitialSync();
 }
