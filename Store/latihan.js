@@ -213,5 +213,6 @@ $('copyLast').onclick=()=>{if(!activePlan)return;const d=new Date(today());d.set
 document.querySelectorAll('[data-shift]').forEach(b=>b.onclick=()=>{$('scheduleFeedback').textContent='Pilih sesi dari daftar lalu gunakan Edit untuk mengubah hari ke '+DAYS[(Math.max(0,DAYS.indexOf(activePlan?.day||DAYS[0]))+(+b.dataset.shift))%7]+'.';});
 $('markRest').onclick=()=>$('scheduleFeedback').textContent='Hari istirahat dicatat sebagai pilihan. Tidak ada latihan yang dipindahkan.';
 $('mergeTarget').onclick=()=>$('scheduleFeedback').textContent='Untuk menjaga pemulihan, gabungkan hanya gerakan ringan; edit sesi dan kurangi volume bila perlu.';
+window.addEventListener('readiness:cloud-restored', () => { renderPlans(); renderAnalytics(); renderWorkoutHistory(); });
 renderPlans();renderAnalytics();
 })();
