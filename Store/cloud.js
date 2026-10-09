@@ -337,8 +337,11 @@ async function uploadSnapshot(snapshot, expectedUpdatedAt=null){
 async function restoreSnapshot(snapshot, backupOwner = user?.id || 'anonymous'){
   backupLocal(backupOwner);
   suppress=true;
-  try { Store.replaceSnapshot(snapshot); }
-  finally { suppress=false; }
+  try {
+    Store.replaceSnapshot(snapshot);
+    // Notify the page UI: localStorage restoration alone does not repaint rendered views.
+    window.dispatchEvent(new CustomEvent('readiness:cloud-restored', { detail: { userId: user?.id || null } }));
+  } finally { suppress=false; }
 }
 
 async function initialSync(){
@@ -432,10 +435,10 @@ function renderAccount(){
   }
   if(!authReady){title.textContent='Akun';sub.textContent='Memuat…';actions.innerHTML='';return;}
   if(user){
-    title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar</button>';
+    title.textContent=user.email||'Akun terhubung'; sub.textContent='Akun aktif • data dan sinkronisasi khusus akun ini'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar dari akun ini</button>';
     $('cloudLogout').onclick=signOut;
   }else{
-    title.textContent='Data cloud';sub.textContent='Simpan data dan pulihkan di perangkat lain.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
+    title.textContent='Belum ada akun aktif';sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
