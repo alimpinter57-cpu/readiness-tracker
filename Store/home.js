@@ -87,5 +87,6 @@ function renderAll(){renderHeader();renderHabits()}
 document.querySelectorAll('.dummy').forEach(x=>x.remove());
 $('addHabitBtn').onclick=()=>openModal();$('emptyAddHabit').onclick=()=>openModal();$('closeHabitModal').onclick=closeModal;$('cancelHabit').onclick=closeModal;$('habitType').onchange=updateType;
 $('saveHabit').onclick=()=>{const name=$('habitName').value.trim();if(!name)return;const h={name,type:$('habitType').value,target:$('habitType').value==='binary'?null:Number($('habitTarget').value)||0,unit:$('habitUnit').value.trim(),rule:$('habitRule').value.trim(),color,icon,schedule};if(editing)Store.updateHabit(editing,h);else Store.addHabit(h);closeModal();renderAll()};
+window.addEventListener('readiness:cloud-restored', () => renderAll());
 renderAll();
 })();
