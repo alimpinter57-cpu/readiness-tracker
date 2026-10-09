@@ -21,6 +21,8 @@ let emailCooldownUntil = 0;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const localBackupKey = 'readiness:preCloudBackup';
+const activeUserKey = 'readiness:activeCloudUserId';
+const accountBackupPrefix = 'readiness:accountBackup:';
 
 function localHasData() {
   const snap = Store.getSnapshot();
@@ -32,14 +34,20 @@ function localHasData() {
   });
 }
 
-function backupLocal() {
+function backupLocal(ownerId = user?.id || 'anonymous') {
   try {
-    localStorage.setItem(localBackupKey, JSON.stringify({
+    const payload = {
       version: 1,
       createdAt: new Date().toISOString(),
+      ownerId,
       snapshot: Store.getSnapshot()
-    }));
-  } catch {}
+    };
+    const serialized = JSON.stringify(payload);
+    localStorage.setItem(localBackupKey, serialized);
+    localStorage.setItem(accountBackupPrefix + ownerId, serialized);
+  } catch (error) {
+    console.error('[Readiness local backup]', error);
+  }
 }
 
 function setStatus(message, kind='muted') {
@@ -326,46 +334,58 @@ async function uploadSnapshot(snapshot, expectedUpdatedAt=null){
   lastCloudUpdatedAt=data.updated_at;
 }
 
-async function restoreSnapshot(snapshot){
-  backupLocal();
+async function restoreSnapshot(snapshot, backupOwner = user?.id || 'anonymous'){
+  backupLocal(backupOwner);
   suppress=true;
-  try { Store.replaceSnapshot(snapshot); }
-  finally { suppress=false; }
+  try {
+    Store.replaceSnapshot(snapshot);
+    // Notify the page UI: localStorage restoration alone does not repaint rendered views.
+    window.dispatchEvent(new CustomEvent('readiness:cloud-restored', { detail: { userId: user?.id || null } }));
+  } finally { suppress=false; }
 }
 
 async function initialSync(){
   if(!user)return;
   setStatus('Memeriksa data cloud…','warn');
-  const local=Store.getSnapshot();
-  const result=await getCloudRow();
-  if(result.error)throw result.error;
-  const cloud=result.data;
-  if(!cloud){
-    if(localHasData()){
-      openChoice('Data lokal ditemukan','Belum ada data cloud untuk akun ini. Pilih apa yang ingin menjadi data akun.',[
-        {title:'Simpan data lokal ke cloud',description:'Data yang sekarang ada di perangkat akan menjadi data akun.',action:async()=>{closeModal();await uploadSnapshot(local);setStatus('Data lokal berhasil disimpan ke cloud.','ok');}},
-        {title:'Mulai dari cloud kosong',description:'Data lokal akan dicadangkan di perangkat lalu diganti dengan data kosong.',action:async()=>{closeModal();backupLocal();await restoreSnapshot({version:1,schemaVersion:1,data:{}});setStatus('Akun siap dengan data kosong.','ok');}}
-      ]);
-    } else {
-      await uploadSnapshot(local);
-      setStatus('Akun siap. Data cloud dibuat.','ok');
-    }
-    return;
-  }
-  lastCloudUpdatedAt=cloud.updated_at;
-  if(!localHasData()){
-    await restoreSnapshot({version:1,schemaVersion:cloud.schema_version||1,data:cloud.data||{}});
-    setStatus('Data cloud dipulihkan ke perangkat.','ok');
-    return;
-  }
-  const same=JSON.stringify(local.data)===JSON.stringify(cloud.data||{});
-  if(same){setStatus('Sinkron.','ok');return;}
-  openChoice('Data lokal dan cloud berbeda','Kami tidak akan menimpa salah satunya secara otomatis.',[
-    {title:'Gunakan data cloud',description:'Cadangkan data lokal lalu pulihkan data dari akun.',action:async()=>{closeModal();await restoreSnapshot({version:1,schemaVersion:cloud.schema_version||1,data:cloud.data||{}});setStatus('Data cloud dipulihkan.','ok');}},
-    {title:'Gunakan data perangkat',description:'Pertahankan data lokal dan unggah sebagai versi akun.',action:async()=>{closeModal();await uploadSnapshot(local,lastCloudUpdatedAt);setStatus('Data perangkat diunggah ke cloud.','ok');}}
-  ]);
-}
 
+  const local = Store.getSnapshot();
+  const previousUserId = localStorage.getItem(activeUserKey);
+  const sameAccount = previousUserId === user.id;
+  const result = await getCloudRow();
+  if(result.error) throw result.error;
+
+  const cloud = result.data;
+  if(!cloud){
+    // First login can claim anonymous local data. Never copy one signed-in
+    // account's local data into a different account.
+    if(previousUserId && !sameAccount){
+      backupLocal(previousUserId);
+      await restoreSnapshot({version:1,schemaVersion:1,data:{}}, previousUserId);
+      await uploadSnapshot(Store.getSnapshot());
+      localStorage.setItem(activeUserKey, user.id);
+      setStatus('Akun ini belum memiliki data. Data akun lama dicadangkan terpisah; akun baru siap dengan data kosong.','ok');
+      return;
+    }
+
+    await uploadSnapshot(local);
+    localStorage.setItem(activeUserKey, user.id);
+    setStatus(localHasData() ? 'Data perangkat berhasil disimpan ke akun cloud.' : 'Akun siap. Penyimpanan cloud dibuat.','ok');
+    return;
+  }
+
+  // A saved cloud row is authoritative for the account being signed into.
+  // Back up local state first, so switching accounts cannot silently destroy it.
+  const same = JSON.stringify(local.data || {}) === JSON.stringify(cloud.data || {});
+  if(!same){
+    await restoreSnapshot(
+      {version:1,schemaVersion:cloud.schema_version||1,data:cloud.data||{}},
+      previousUserId || 'anonymous'
+    );
+  }
+  lastCloudUpdatedAt = cloud.updated_at;
+  localStorage.setItem(activeUserKey, user.id);
+  setStatus(same ? 'Sinkron. Data akun sudah sama dengan perangkat.' : 'Data akun berhasil dipulihkan ke perangkat. Data lokal sebelumnya dicadangkan.','ok');
+}
 async function syncNow(){
   if(!user||suppress||syncing)return;
   syncing=true;setStatus('Menyinkronkan…','warn');
@@ -415,10 +435,10 @@ function renderAccount(){
   }
   if(!authReady){title.textContent='Akun';sub.textContent='Memuat…';actions.innerHTML='';return;}
   if(user){
-    title.textContent='Akun terhubung'; sub.textContent=user.email||'Pengguna'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar</button>';
+    title.textContent=user.email||'Akun terhubung'; sub.textContent='Akun aktif • data dan sinkronisasi khusus akun ini'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar dari akun ini</button>';
     $('cloudLogout').onclick=signOut;
   }else{
-    title.textContent='Data cloud';sub.textContent='Simpan data dan pulihkan di perangkat lain.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
+    title.textContent='Belum ada akun aktif';sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
