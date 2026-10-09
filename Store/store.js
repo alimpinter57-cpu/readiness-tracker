@@ -243,7 +243,7 @@ const Store = (() => {
     const data = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || (!key.startsWith('readiness:') && !key.startsWith('workout:'))) continue;
+      if (!key || key === 'readiness:preCloudBackup' || key === 'readiness:activeCloudUserId' || key.startsWith('readiness:accountBackup:') || (!key.startsWith('readiness:') && !key.startsWith('workout:'))) continue;
       try { data[key] = JSON.parse(localStorage.getItem(key)); }
       catch { data[key] = localStorage.getItem(key); }
     }
@@ -254,11 +254,11 @@ const Store = (() => {
     const existingKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith('readiness:') || key.startsWith('workout:'))) existingKeys.push(key);
+      if (key && key !== 'readiness:preCloudBackup' && key !== 'readiness:activeCloudUserId' && !key.startsWith('readiness:accountBackup:') && (key.startsWith('readiness:') || key.startsWith('workout:'))) existingKeys.push(key);
     }
     existingKeys.forEach(key => localStorage.removeItem(key));
     Object.entries(incoming).forEach(([key, value]) => {
-      if (!key.startsWith('readiness:') && !key.startsWith('workout:')) return;
+      if (key === 'readiness:preCloudBackup' || key === 'readiness:activeCloudUserId' || key.startsWith('readiness:accountBackup:') || (!key.startsWith('readiness:') && !key.startsWith('workout:'))) return;
       try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
     });
   };
