@@ -448,20 +448,32 @@ async function init(){
   if(!configured){authReady=true;renderAccount();return;}
   if(!window.supabase?.createClient){authReady=true;renderAccount();setStatus('Library Supabase belum termuat.','error');return;}
   client=window.supabase.createClient(CONFIG.url,CONFIG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  // Prevent a stale getSession() response from overwriting a newer auth event
+  // (for example, OAuth SIGNED_IN after the initial page session lookup began).
+  let authChangeSequence=0;
   client.auth.onAuthStateChange((event,session)=>{
+    if(event!=='INITIAL_SESSION') authChangeSequence++;
     user=session?.user||null;
     if(event==='PASSWORD_RECOVERY'){openPasswordRecovery();return;}
     authReady=true;
     renderAccount();
-    if(event==='SIGNED_IN') scheduleInitialSync();
+    if(event==='SIGNED_IN'){
+      initialSyncStarted=false;
+      scheduleInitialSync();
+    }
     if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
   });
+  const sequenceBeforeGetSession=authChangeSequence;
   const {data, error:sessionError}=await client.auth.getSession();
   if(sessionError){
     console.error('[Readiness Cloud session]',sessionError);
     setStatus('Gagal membaca sesi akun: '+cloudErrorMessage(sessionError),'error');
   }
-  user=data.session?.user||null;authReady=true;renderAccount();
+  // Only apply this snapshot if no sign-in/sign-out event arrived while awaiting it.
+  if(authChangeSequence===sequenceBeforeGetSession){
+    user=data.session?.user||null;
+  }
+  authReady=true;renderAccount();
   if(user) scheduleInitialSync();
 }
 
