@@ -241,7 +241,7 @@ async function signUp(){
     return;
   }
   if(!data.session){
-    error.textContent='Akun dibuat. Periksa email untuk verifikasi, lalu masuk kembali.';
+    error.textContent='Supabase membuat akun tetapi belum memberi sesi login, jadi data belum bisa disimpan ke readiness_data. Karena email verifikasi tidak masuk, periksa Supabase: Authentication → Providers → Email → Confirm email. Untuk uji awal, nonaktifkan Confirm email; atau atur SMTP agar email verifikasi terkirim. Setelah itu masuk kembali.';
     startEmailCooldown(submit);
     return;
   }
@@ -435,7 +435,7 @@ function renderAccount(){
   }
   if(!authReady){title.textContent='Akun';sub.textContent='Memuat…';actions.innerHTML='';return;}
   if(user){
-    title.textContent=user.email||'Akun terhubung'; sub.textContent='Akun aktif • data dan sinkronisasi khusus akun ini'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar dari akun ini</button>';
+    title.textContent='✓ Login berhasil'; sub.textContent=(user.email||'Akun terhubung')+' • sesi akun aktif, data khusus akun ini'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar dari akun ini</button>';
     $('cloudLogout').onclick=signOut;
   }else{
     title.textContent='Belum ada akun aktif';sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
@@ -459,6 +459,7 @@ async function init(){
     renderAccount();
     if(event==='SIGNED_IN'){
       initialSyncStarted=false;
+      setStatus('Login berhasil. Menyiapkan penyimpanan data akun…','warn');
       scheduleInitialSync();
     }
     if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
