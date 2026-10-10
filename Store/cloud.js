@@ -163,22 +163,36 @@ async function signInWithGoogle(){
   const button=$('cloudGoogle'), error=$('cloudAuthError');
   if(button) button.disabled=true;
   if(error) error.textContent='';
-  const redirectTo=window.location.origin+window.location.pathname;
-  const {error:err}=await client.auth.signInWithOAuth({
-    provider:'google',
-    options:{redirectTo}
-  });
-  if(err){
+  if(!client){
+    if(error) error.textContent='Supabase belum siap. Muat ulang halaman; jika tetap muncul, periksa URL dan publishable key di Store/supabase-config.js.';
+    if(button) button.disabled=false;
+    return;
+  }
+  try {
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error:err}=await client.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo}
+    });
+    if(err) throw err;
+  } catch(err) {
     if(error) error.textContent=authErrorMessage(err);
     if(button) button.disabled=false;
+    console.error('[Readiness Google login]',err);
   }
 }
 
 function authErrorMessage(err) {
-  const message = String(err?.message || '').toLowerCase();
-  if (message.includes('provider is not enabled') || message.includes('unsupported provider')) {
-    return 'Google Login belum diaktifkan di Supabase. Aktifkan Auth → Providers → Google, lalu isi Client ID dan Client Secret Google.';
+  const raw = String(err?.message || err || 'Terjadi kesalahan');
+  const message = raw.toLowerCase();
+  if (message.includes('failed to fetch') || message.includes('networkerror') || message.includes('load failed')) {
+    return 'Tidak bisa menjangkau Supabase. Periksa koneksi internet, Project URL, dan status proyek Supabase.';
   }
+  if (message.includes('redirect') && (message.includes('url') || message.includes('not allowed'))) {
+    return 'URL pengalihan ditolak. Tambahkan URL website ini ke Supabase → Authentication → URL Configuration → Redirect URLs.';
+  }
+  if (message.includes('provider is not enabled') || message.includes('unsupported provider')) {
+    return 'Google Login belum aktif di Supabase. Aktifkan Authentication → Providers → Google dan isi OAuth Client ID serta Client Secret.';
   if (err?.code === 'over_email_send_rate_limit') return 'Pengiriman email sedang dibatasi. Tunggu beberapa saat sebelum mencoba lagi.';
   if (err?.code === 'over_request_rate_limit') return 'Terlalu banyak percobaan. Tunggu beberapa menit sebelum mencoba lagi.';
   if (err?.code === 'email_not_confirmed') return 'Email belum dikonfirmasi. Periksa inbox lalu coba lagi.';
@@ -225,36 +239,52 @@ function openChoice(title, message, choices) {
 }
 
 async function signUp(){
-  const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value;
-  const error=$('cloudAuthError'); error.textContent='';
+  const email=$('cloudEmail')?.value.trim(), password=$('cloudPassword')?.value;
+  const error=$('cloudAuthError');
+  if(!error || !email || !password) return;
+  error.textContent='';
   const submit=$('cloudAuthForm')?.querySelector('button[type="submit"]');
   if (Date.now() < emailCooldownUntil) { error.textContent='Tunggu sebentar sebelum mengirim email lagi.'; return; }
   if (submit) submit.disabled=true;
-  const redirectTo = window.location.origin + window.location.pathname;
-  const {data,error:err}=await client.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: redirectTo }
-  });
-  if(err){
+  try {
+    if(!client) throw new Error('Supabase belum siap. Periksa URL dan publishable key di Store/supabase-config.js.');
+    const redirectTo = window.location.origin + window.location.pathname;
+    const {data,error:err}=await client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: redirectTo }
+    });
+    if(err) throw err;
+    if(!data.session){
+      error.textContent='Permintaan daftar diterima, tetapi sesi login belum dibuat. Akun mungkin menunggu verifikasi email. Periksa Authentication → Users di Supabase. Jika pengguna ada tetapi email verifikasi tidak diterima, periksa Confirm email dan konfigurasi SMTP; lalu masuk setelah akun terverifikasi.';
+      startEmailCooldown(submit);
+      return;
+    }
+    closeModal();
+  } catch(err) {
     error.textContent=authErrorMessage(err);
-    if (err.code === 'over_email_send_rate_limit' || err.code === 'over_request_rate_limit') startEmailCooldown(submit);
+    if (err?.code === 'over_email_send_rate_limit' || err?.code === 'over_request_rate_limit') startEmailCooldown(submit);
     else if (submit) submit.disabled=false;
-    return;
+    console.error('[Readiness signup]',err);
   }
-  if(!data.session){
-    error.textContent='Supabase membuat akun tetapi belum memberi sesi login, jadi data belum bisa disimpan ke readiness_data. Karena email verifikasi tidak masuk, periksa Supabase: Authentication → Providers → Email → Confirm email. Untuk uji awal, nonaktifkan Confirm email; atau atur SMTP agar email verifikasi terkirim. Setelah itu masuk kembali.';
-    startEmailCooldown(submit);
-    return;
-  }
-  closeModal();
 }
 
 async function signIn(){
-  const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value, error=$('cloudAuthError'); error.textContent='';
-  const {error:err}=await client.auth.signInWithPassword({email,password});
-  if(err){error.textContent=authErrorMessage(err);return;}
-  closeModal();
+  const email=$('cloudEmail')?.value.trim(), password=$('cloudPassword')?.value, error=$('cloudAuthError');
+  if(!error || !email || !password) return;
+  error.textContent='';
+  const submit=$('cloudAuthForm')?.querySelector('button[type="submit"]');
+  if(submit) submit.disabled=true;
+  try {
+    if(!client) throw new Error('Supabase belum siap. Periksa URL dan publishable key di Store/supabase-config.js.');
+    const {error:err}=await client.auth.signInWithPassword({email,password});
+    if(err) throw err;
+    closeModal();
+  } catch(err) {
+    error.textContent=authErrorMessage(err);
+    if(submit) submit.disabled=false;
+    console.error('[Readiness login]',err);
+  }
 }
 
 async function resetPassword(){
@@ -299,7 +329,16 @@ function openPasswordRecovery(){
   };
 }
 
-async function signOut(){ await client.auth.signOut(); }
+async function signOut(){
+  try {
+    if(!client) throw new Error('Supabase belum siap.');
+    const {error}=await client.auth.signOut();
+    if(error) throw error;
+  } catch(error) {
+    setStatus('Gagal keluar: '+authErrorMessage(error),'error');
+    console.error('[Readiness logout]',error);
+  }
+}
 
 async function getCloudRow(){
   if(!user)return {data:null,error:new Error('Belum login')};
