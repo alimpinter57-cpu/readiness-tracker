@@ -15,6 +15,8 @@ let syncTimer = null;
 let lastCloudUpdatedAt = null;
 let authReady = false;
 let initialSyncStarted = false;
+let cloudConnectionState = 'checking';
+let cloudConnectionMessage = 'Memeriksa koneksi cloud…';
 const emailCooldownMs = 60000;
 let emailCooldownUntil = 0;
 
@@ -161,21 +163,36 @@ async function signInWithGoogle(){
   const button=$('cloudGoogle'), error=$('cloudAuthError');
   if(button) button.disabled=true;
   if(error) error.textContent='';
-  const redirectTo=window.location.origin+window.location.pathname;
-  const {error:err}=await client.auth.signInWithOAuth({
-    provider:'google',
-    options:{redirectTo}
-  });
-  if(err){
+  if(!client){
+    if(error) error.textContent='Supabase belum siap. Muat ulang halaman; jika tetap muncul, periksa URL dan publishable key di Store/supabase-config.js.';
+    if(button) button.disabled=false;
+    return;
+  }
+  try {
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error:err}=await client.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo}
+    });
+    if(err) throw err;
+  } catch(err) {
     if(error) error.textContent=authErrorMessage(err);
     if(button) button.disabled=false;
+    console.error('[Readiness Google login]',err);
   }
 }
 
 function authErrorMessage(err) {
-  const message = String(err?.message || '').toLowerCase();
+  const raw = String(err?.message || err || 'Terjadi kesalahan');
+  const message = raw.toLowerCase();
+  if (message.includes('failed to fetch') || message.includes('networkerror') || message.includes('load failed')) {
+    return 'Tidak bisa menjangkau Supabase. Periksa koneksi internet, Project URL, dan status proyek Supabase.';
+  }
+  if (message.includes('redirect') && (message.includes('url') || message.includes('not allowed'))) {
+    return 'URL pengalihan ditolak. Tambahkan URL website ini ke Supabase → Authentication → URL Configuration → Redirect URLs.';
+  }
   if (message.includes('provider is not enabled') || message.includes('unsupported provider')) {
-    return 'Google Login belum diaktifkan di Supabase. Aktifkan Auth → Providers → Google, lalu isi Client ID dan Client Secret Google.';
+    return 'Google Login belum aktif di Supabase. Aktifkan Authentication → Providers → Google dan isi OAuth Client ID serta Client Secret.';
   }
   if (err?.code === 'over_email_send_rate_limit') return 'Pengiriman email sedang dibatasi. Tunggu beberapa saat sebelum mencoba lagi.';
   if (err?.code === 'over_request_rate_limit') return 'Terlalu banyak percobaan. Tunggu beberapa menit sebelum mencoba lagi.';
@@ -223,36 +240,52 @@ function openChoice(title, message, choices) {
 }
 
 async function signUp(){
-  const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value;
-  const error=$('cloudAuthError'); error.textContent='';
+  const email=$('cloudEmail')?.value.trim(), password=$('cloudPassword')?.value;
+  const error=$('cloudAuthError');
+  if(!error || !email || !password) return;
+  error.textContent='';
   const submit=$('cloudAuthForm')?.querySelector('button[type="submit"]');
   if (Date.now() < emailCooldownUntil) { error.textContent='Tunggu sebentar sebelum mengirim email lagi.'; return; }
   if (submit) submit.disabled=true;
-  const redirectTo = window.location.origin + window.location.pathname;
-  const {data,error:err}=await client.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: redirectTo }
-  });
-  if(err){
+  try {
+    if(!client) throw new Error('Supabase belum siap. Periksa URL dan publishable key di Store/supabase-config.js.');
+    const redirectTo = window.location.origin + window.location.pathname;
+    const {data,error:err}=await client.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: redirectTo }
+    });
+    if(err) throw err;
+    if(!data.session){
+      error.textContent='Permintaan daftar diterima, tetapi sesi login belum dibuat. Akun mungkin menunggu verifikasi email. Periksa Authentication → Users di Supabase. Jika pengguna ada tetapi email verifikasi tidak diterima, periksa Confirm email dan konfigurasi SMTP; lalu masuk setelah akun terverifikasi.';
+      startEmailCooldown(submit);
+      return;
+    }
+    closeModal();
+  } catch(err) {
     error.textContent=authErrorMessage(err);
-    if (err.code === 'over_email_send_rate_limit' || err.code === 'over_request_rate_limit') startEmailCooldown(submit);
+    if (err?.code === 'over_email_send_rate_limit' || err?.code === 'over_request_rate_limit') startEmailCooldown(submit);
     else if (submit) submit.disabled=false;
-    return;
+    console.error('[Readiness signup]',err);
   }
-  if(!data.session){
-    error.textContent='Akun dibuat. Periksa email untuk verifikasi, lalu masuk kembali.';
-    startEmailCooldown(submit);
-    return;
-  }
-  closeModal();
 }
 
 async function signIn(){
-  const email=$('cloudEmail').value.trim(), password=$('cloudPassword').value, error=$('cloudAuthError'); error.textContent='';
-  const {error:err}=await client.auth.signInWithPassword({email,password});
-  if(err){error.textContent=authErrorMessage(err);return;}
-  closeModal();
+  const email=$('cloudEmail')?.value.trim(), password=$('cloudPassword')?.value, error=$('cloudAuthError');
+  if(!error || !email || !password) return;
+  error.textContent='';
+  const submit=$('cloudAuthForm')?.querySelector('button[type="submit"]');
+  if(submit) submit.disabled=true;
+  try {
+    if(!client) throw new Error('Supabase belum siap. Periksa URL dan publishable key di Store/supabase-config.js.');
+    const {error:err}=await client.auth.signInWithPassword({email,password});
+    if(err) throw err;
+    closeModal();
+  } catch(err) {
+    error.textContent=authErrorMessage(err);
+    if(submit) submit.disabled=false;
+    console.error('[Readiness login]',err);
+  }
 }
 
 async function resetPassword(){
@@ -297,7 +330,16 @@ function openPasswordRecovery(){
   };
 }
 
-async function signOut(){ await client.auth.signOut(); }
+async function signOut(){
+  try {
+    if(!client) throw new Error('Supabase belum siap.');
+    const {error}=await client.auth.signOut();
+    if(error) throw error;
+  } catch(error) {
+    setStatus('Gagal keluar: '+authErrorMessage(error),'error');
+    console.error('[Readiness logout]',error);
+  }
+}
 
 async function getCloudRow(){
   if(!user)return {data:null,error:new Error('Belum login')};
@@ -346,6 +388,7 @@ async function restoreSnapshot(snapshot, backupOwner = user?.id || 'anonymous'){
 
 async function initialSync(){
   if(!user)return;
+  cloudConnectionState='checking'; cloudConnectionMessage='Memeriksa data cloud…'; renderAccount();
   setStatus('Memeriksa data cloud…','warn');
 
   const local = Store.getSnapshot();
@@ -363,12 +406,14 @@ async function initialSync(){
       await restoreSnapshot({version:1,schemaVersion:1,data:{}}, previousUserId);
       await uploadSnapshot(Store.getSnapshot());
       localStorage.setItem(activeUserKey, user.id);
+      cloudConnectionState='connected'; cloudConnectionMessage='Akun baru siap dan penyimpanan cloud berhasil dibuat.'; renderAccount();
       setStatus('Akun ini belum memiliki data. Data akun lama dicadangkan terpisah; akun baru siap dengan data kosong.','ok');
       return;
     }
 
     await uploadSnapshot(local);
     localStorage.setItem(activeUserKey, user.id);
+    cloudConnectionState='connected'; cloudConnectionMessage='Penyimpanan cloud berhasil dibuat.'; renderAccount();
     setStatus(localHasData() ? 'Data perangkat berhasil disimpan ke akun cloud.' : 'Akun siap. Penyimpanan cloud dibuat.','ok');
     return;
   }
@@ -384,6 +429,7 @@ async function initialSync(){
   }
   lastCloudUpdatedAt = cloud.updated_at;
   localStorage.setItem(activeUserKey, user.id);
+  cloudConnectionState='connected'; cloudConnectionMessage='Data akun berhasil diperiksa dan tersinkron.'; renderAccount();
   setStatus(same ? 'Sinkron. Data akun sudah sama dengan perangkat.' : 'Data akun berhasil dipulihkan ke perangkat. Data lokal sebelumnya dicadangkan.','ok');
 }
 async function syncNow(){
@@ -430,15 +476,53 @@ function renderAccount(){
   bindSyncButton();
   const title=$('cloudAccountTitle'), sub=$('cloudAccountSub'), actions=$('cloudActions');
   if(!title||!sub||!actions)return;
-  if(!configured){
-    title.textContent='Cloud belum dikonfigurasi'; sub.textContent='Isi Store/supabase-config.js setelah proyek Supabase siap.'; actions.innerHTML=''; setStatus('Mode lokal tetap aktif.','warn'); return;
+
+  // Keep the connection badge inside the existing account card, even on pages
+  // whose older HTML did not include a dedicated status element.
+  const card=title.closest('.cloud-settings-account');
+  let cloudStatus=$('cloudAccountCloudStatus');
+  if(card&&!cloudStatus){
+    cloudStatus=document.createElement('small');
+    cloudStatus.id='cloudAccountCloudStatus';
+    cloudStatus.style.cssText='display:inline-block;margin-top:10px;padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.06);font-weight:600;opacity:1';
+    const actionHost=$('cloudActions');
+    card.insertBefore(cloudStatus,actionHost||null);
   }
-  if(!authReady){title.textContent='Akun';sub.textContent='Memuat…';actions.innerHTML='';return;}
+
+  if(!configured){
+    title.textContent='Akun belum terhubung';
+    sub.textContent='Data hanya tersimpan di perangkat ini.';
+    actions.innerHTML='';
+    if(cloudStatus){cloudStatus.textContent='● Cloud belum dikonfigurasi';cloudStatus.dataset.state='warn';}
+    setStatus('Mode lokal tetap aktif.','warn');
+    return;
+  }
+  if(!authReady){
+    title.textContent='Memuat akun…';
+    sub.textContent='Memeriksa sesi login.';
+    actions.innerHTML='';
+    if(cloudStatus){cloudStatus.textContent='● Memeriksa koneksi cloud…';cloudStatus.dataset.state='warn';}
+    return;
+  }
   if(user){
-    title.textContent=user.email||'Akun terhubung'; sub.textContent='Akun aktif • data dan sinkronisasi khusus akun ini'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar dari akun ini</button>';
+    const metadata=user.user_metadata||{};
+    const displayName=metadata.full_name||metadata.name||metadata.display_name||metadata.user_name||'Profil pengguna';
+    title.textContent=displayName;
+    sub.textContent=user.email||'Email tidak tersedia';
+    if(cloudStatus){
+      cloudStatus.textContent=(cloudConnectionState==='connected'?'● Terhubung ke Database/Cloud':cloudConnectionState==='error'?'● Login aktif • Cloud bermasalah':'● Login aktif • Memeriksa Database/Cloud…');
+      cloudStatus.dataset.state=cloudConnectionState==='connected'?'ok':cloudConnectionState==='error'?'error':'warn';
+    }
+    actions.innerHTML='<button class="mini-action" id="cloudLogout" type="button">Keluar (Logout)</button>';
     $('cloudLogout').onclick=signOut;
   }else{
-    title.textContent='Belum ada akun aktif';sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
+    title.textContent='Belum ada akun aktif';
+    sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';
+    actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain" type="button">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin" type="button">Masuk</button><button class="mini-action" id="cloudSignup" type="button">Daftar</button>';
+    if(cloudStatus){cloudStatus.textContent='● Belum terhubung ke Database/Cloud';cloudStatus.dataset.state='warn';}
+    $('cloudGoogleMain').onclick=signInWithGoogle;
+    $('cloudLogin').onclick=()=>openAuth('login');
+    $('cloudSignup').onclick=()=>openAuth('signup');
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
@@ -448,20 +532,35 @@ async function init(){
   if(!configured){authReady=true;renderAccount();return;}
   if(!window.supabase?.createClient){authReady=true;renderAccount();setStatus('Library Supabase belum termuat.','error');return;}
   client=window.supabase.createClient(CONFIG.url,CONFIG.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  // Prevent a stale getSession() response from overwriting a newer auth event
+  // (for example, OAuth SIGNED_IN after the initial page session lookup began).
+  let authChangeSequence=0;
   client.auth.onAuthStateChange((event,session)=>{
+    if(event!=='INITIAL_SESSION') authChangeSequence++;
     user=session?.user||null;
     if(event==='PASSWORD_RECOVERY'){openPasswordRecovery();return;}
     authReady=true;
     renderAccount();
-    if(event==='SIGNED_IN') scheduleInitialSync();
-    if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
+    if(event==='SIGNED_IN'){
+      initialSyncStarted=false;
+      cloudConnectionState='checking'; cloudConnectionMessage='Menyiapkan penyimpanan data akun…';
+      renderAccount();
+      setStatus('Login berhasil. Menyiapkan penyimpanan data akun…','warn');
+      scheduleInitialSync();
+    }
+    if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;cloudConnectionState='checking';cloudConnectionMessage='Belum terhubung';renderAccount();setStatus('Keluar. Data lokal tetap ada.','warn');}
   });
+  const sequenceBeforeGetSession=authChangeSequence;
   const {data, error:sessionError}=await client.auth.getSession();
   if(sessionError){
     console.error('[Readiness Cloud session]',sessionError);
     setStatus('Gagal membaca sesi akun: '+cloudErrorMessage(sessionError),'error');
   }
-  user=data.session?.user||null;authReady=true;renderAccount();
+  // Only apply this snapshot if no sign-in/sign-out event arrived while awaiting it.
+  if(authChangeSequence===sequenceBeforeGetSession){
+    user=data.session?.user||null;
+  }
+  authReady=true;renderAccount();
   if(user) scheduleInitialSync();
 }
 
@@ -472,6 +571,7 @@ function scheduleInitialSync(){
     try{await initialSync();}
     catch(e){
       initialSyncStarted=false;
+      cloudConnectionState='error'; cloudConnectionMessage='Cloud gagal diperiksa: '+(e.message||'error'); renderAccount();
       setStatus('Gagal memuat cloud: '+(e.message||'error'),'error');
     }
   },0);
