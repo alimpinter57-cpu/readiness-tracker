@@ -15,6 +15,8 @@ let syncTimer = null;
 let lastCloudUpdatedAt = null;
 let authReady = false;
 let initialSyncStarted = false;
+let cloudConnectionState = 'checking';
+let cloudConnectionMessage = 'Memeriksa koneksi cloud…';
 const emailCooldownMs = 60000;
 let emailCooldownUntil = 0;
 
@@ -346,6 +348,7 @@ async function restoreSnapshot(snapshot, backupOwner = user?.id || 'anonymous'){
 
 async function initialSync(){
   if(!user)return;
+  cloudConnectionState='checking'; cloudConnectionMessage='Memeriksa data cloud…'; renderAccount();
   setStatus('Memeriksa data cloud…','warn');
 
   const local = Store.getSnapshot();
@@ -363,12 +366,14 @@ async function initialSync(){
       await restoreSnapshot({version:1,schemaVersion:1,data:{}}, previousUserId);
       await uploadSnapshot(Store.getSnapshot());
       localStorage.setItem(activeUserKey, user.id);
+      cloudConnectionState='connected'; cloudConnectionMessage='Akun baru siap dan penyimpanan cloud berhasil dibuat.'; renderAccount();
       setStatus('Akun ini belum memiliki data. Data akun lama dicadangkan terpisah; akun baru siap dengan data kosong.','ok');
       return;
     }
 
     await uploadSnapshot(local);
     localStorage.setItem(activeUserKey, user.id);
+    cloudConnectionState='connected'; cloudConnectionMessage='Penyimpanan cloud berhasil dibuat.'; renderAccount();
     setStatus(localHasData() ? 'Data perangkat berhasil disimpan ke akun cloud.' : 'Akun siap. Penyimpanan cloud dibuat.','ok');
     return;
   }
@@ -384,6 +389,7 @@ async function initialSync(){
   }
   lastCloudUpdatedAt = cloud.updated_at;
   localStorage.setItem(activeUserKey, user.id);
+  cloudConnectionState='connected'; cloudConnectionMessage='Data akun berhasil diperiksa dan tersinkron.'; renderAccount();
   setStatus(same ? 'Sinkron. Data akun sudah sama dengan perangkat.' : 'Data akun berhasil dipulihkan ke perangkat. Data lokal sebelumnya dicadangkan.','ok');
 }
 async function syncNow(){
@@ -430,15 +436,53 @@ function renderAccount(){
   bindSyncButton();
   const title=$('cloudAccountTitle'), sub=$('cloudAccountSub'), actions=$('cloudActions');
   if(!title||!sub||!actions)return;
-  if(!configured){
-    title.textContent='Cloud belum dikonfigurasi'; sub.textContent='Isi Store/supabase-config.js setelah proyek Supabase siap.'; actions.innerHTML=''; setStatus('Mode lokal tetap aktif.','warn'); return;
+
+  // Keep the connection badge inside the existing account card, even on pages
+  // whose older HTML did not include a dedicated status element.
+  const card=title.closest('.cloud-settings-account');
+  let cloudStatus=$('cloudAccountCloudStatus');
+  if(card&&!cloudStatus){
+    cloudStatus=document.createElement('small');
+    cloudStatus.id='cloudAccountCloudStatus';
+    cloudStatus.style.cssText='display:inline-block;margin-top:10px;padding:6px 9px;border-radius:8px;background:rgba(255,255,255,.06);font-weight:600;opacity:1';
+    const actionHost=$('cloudActions');
+    card.insertBefore(cloudStatus,actionHost||null);
   }
-  if(!authReady){title.textContent='Akun';sub.textContent='Memuat…';actions.innerHTML='';return;}
+
+  if(!configured){
+    title.textContent='Akun belum terhubung';
+    sub.textContent='Data hanya tersimpan di perangkat ini.';
+    actions.innerHTML='';
+    if(cloudStatus){cloudStatus.textContent='● Cloud belum dikonfigurasi';cloudStatus.dataset.state='warn';}
+    setStatus('Mode lokal tetap aktif.','warn');
+    return;
+  }
+  if(!authReady){
+    title.textContent='Memuat akun…';
+    sub.textContent='Memeriksa sesi login.';
+    actions.innerHTML='';
+    if(cloudStatus){cloudStatus.textContent='● Memeriksa koneksi cloud…';cloudStatus.dataset.state='warn';}
+    return;
+  }
   if(user){
-    title.textContent='✓ Login berhasil'; sub.textContent=(user.email||'Akun terhubung')+' • sesi akun aktif, data khusus akun ini'; actions.innerHTML='<button class="mini-action" id="cloudLogout">Keluar dari akun ini</button>';
+    const metadata=user.user_metadata||{};
+    const displayName=metadata.full_name||metadata.name||metadata.display_name||metadata.user_name||'Profil pengguna';
+    title.textContent=displayName;
+    sub.textContent=user.email||'Email tidak tersedia';
+    if(cloudStatus){
+      cloudStatus.textContent=(cloudConnectionState==='connected'?'● Terhubung ke Database/Cloud':cloudConnectionState==='error'?'● Login aktif • Cloud bermasalah':'● Login aktif • Memeriksa Database/Cloud…');
+      cloudStatus.dataset.state=cloudConnectionState==='connected'?'ok':cloudConnectionState==='error'?'error':'warn';
+    }
+    actions.innerHTML='<button class="mini-action" id="cloudLogout" type="button">Keluar (Logout)</button>';
     $('cloudLogout').onclick=signOut;
   }else{
-    title.textContent='Belum ada akun aktif';sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin">Masuk</button><button class="mini-action" id="cloudSignup">Daftar</button>'; $('cloudGoogleMain').onclick=signInWithGoogle;$('cloudLogin').onclick=()=>openAuth('login');$('cloudSignup').onclick=()=>openAuth('signup');
+    title.textContent='Belum ada akun aktif';
+    sub.textContent='Data lokal perangkat ini belum terhubung ke akun cloud.';
+    actions.innerHTML='<button class="btn btn-primary" id="cloudGoogleMain" type="button">Lanjut dengan Google</button><button class="btn btn-secondary" id="cloudLogin" type="button">Masuk</button><button class="mini-action" id="cloudSignup" type="button">Daftar</button>';
+    if(cloudStatus){cloudStatus.textContent='● Belum terhubung ke Database/Cloud';cloudStatus.dataset.state='warn';}
+    $('cloudGoogleMain').onclick=signInWithGoogle;
+    $('cloudLogin').onclick=()=>openAuth('login');
+    $('cloudSignup').onclick=()=>openAuth('signup');
     setStatus('Mode lokal aktif sampai akun dihubungkan.','warn');
   }
 }
@@ -459,10 +503,12 @@ async function init(){
     renderAccount();
     if(event==='SIGNED_IN'){
       initialSyncStarted=false;
+      cloudConnectionState='checking'; cloudConnectionMessage='Menyiapkan penyimpanan data akun…';
+      renderAccount();
       setStatus('Login berhasil. Menyiapkan penyimpanan data akun…','warn');
       scheduleInitialSync();
     }
-    if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;setStatus('Keluar. Data lokal tetap ada.','warn');}
+    if(event==='SIGNED_OUT'){lastCloudUpdatedAt=null;initialSyncStarted=false;cloudConnectionState='checking';cloudConnectionMessage='Belum terhubung';renderAccount();setStatus('Keluar. Data lokal tetap ada.','warn');}
   });
   const sequenceBeforeGetSession=authChangeSequence;
   const {data, error:sessionError}=await client.auth.getSession();
@@ -485,6 +531,7 @@ function scheduleInitialSync(){
     try{await initialSync();}
     catch(e){
       initialSyncStarted=false;
+      cloudConnectionState='error'; cloudConnectionMessage='Cloud gagal diperiksa: '+(e.message||'error'); renderAccount();
       setStatus('Gagal memuat cloud: '+(e.message||'error'),'error');
     }
   },0);
