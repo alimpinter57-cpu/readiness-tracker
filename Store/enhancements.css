@@ -57,3 +57,68 @@
 .daily-category-form [hidden],.daily-task-form [hidden]{display:none!important}
 @media(max-width:560px){.daily-day-tabs{gap:4px}.daily-day-tab{padding:9px 1px;font-size:10px;border-radius:9px}.daily-task{grid-template-columns:25px minmax(0,1fr);gap:9px;padding:10px}.daily-task-actions{grid-column:2;justify-content:flex-end;margin-top:-2px}.daily-category-form{grid-template-columns:minmax(0,1fr) 54px}.daily-category-form label:nth-child(3){grid-column:1/-1}.daily-category-form button{grid-column:1/-1}.daily-task-form{grid-template-columns:1fr}.daily-task-form>label,.daily-task-form>button{grid-column:1}.daily-progress-head>strong{font-size:23px}}
 @media(prefers-reduced-motion:reduce){.daily-progress-track span{transition:none}}
+
+
+/* Shared navigation: larger targets and four clearly separated destinations */
+.topnav>.tabs{
+  flex:1;
+  width:min(100%,480px);
+  max-width:480px;
+  margin-left:auto;
+  margin-right:12px;
+  justify-content:space-between;
+  gap:6px;
+}
+.topnav>.tabs a{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:10px 11px;
+  text-align:center;
+  white-space:nowrap;
+}
+.topnav>.tabs .nav-icon{
+  display:inline-grid;
+  place-items:center;
+  flex:0 0 auto;
+  font-size:15px;
+  line-height:1;
+}
+.topnav>.tabs .nav-label{line-height:1.2}
+@media(max-width:620px){
+  .topnav{
+    height:auto;
+    min-height:64px;
+    padding:8px 10px 9px;
+    gap:7px;
+    flex-wrap:wrap;
+  }
+  .topnav>.brand{order:0}
+  .topnav>.cloud-settings-button{order:1;margin-left:auto}
+  .topnav>.tabs{
+    order:2;
+    flex:0 0 100%;
+    width:100%;
+    max-width:none;
+    margin:0;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:5px;
+    padding:5px;
+    overflow:visible;
+  }
+  .topnav>.tabs a{
+    min-height:53px;
+    flex-direction:column;
+    gap:5px;
+    padding:7px 2px;
+    border-radius:9px;
+    font-size:10px;
+    white-space:normal;
+  }
+  .topnav>.tabs .nav-icon{font-size:17px}
+  .topnav>.tabs .nav-label{font-size:10px;overflow-wrap:anywhere}
+}
