@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f1a"><link rel="manifest" href="manifest.webmanifest">
-<title>Readiness — Habit Dashboard</title><link rel="stylesheet" href="Store/style.css?v=20261008-5"><link rel="stylesheet" href="Store/enhancements.css">
+<title>Readiness — Habit Dashboard</title><link rel="stylesheet" href="Store/style.css?v=20261008-5"><link rel="stylesheet" href="Store/enhancements.css"><link rel="stylesheet" href="Store/ui-polish.css">
 </head>
 <body><div class="app-shell">
 <header class="topnav">
@@ -17,18 +17,15 @@
 <div class="progress-ring" id="progressRing"><strong id="dailyPercent">0%</strong><span>hari ini</span></div></div>
 <div class="week-strip" id="weekStrip"></div>
 </section>
-
 <section class="card">
 <div class="section-head"><div><span class="section-kicker">KEBIASAAN HARI INI</span><h2 id="habitSummary">0 kebiasaan</h2></div><button class="mini-action" id="addHabitBtn">＋ Tambah</button></div>
 <div id="habitList" class="habit-list"></div>
 <div id="habitEmpty" class="habit-empty"><div class="habit-empty-icon">✦</div><strong>Belum ada kebiasaan</strong><span>Buat sistemmu sendiri. Mulai dari satu hal yang paling penting.</span><button class="btn btn-primary" id="emptyAddHabit">＋ Buat kebiasaan</button></div>
 </section>
-
 <section class="card workout-card">
 <div class="section-head"><div><span class="section-kicker">WORKOUT</span><h2>Latihan hari ini</h2></div><a class="micro-link" href="latihan/latihan.html">Kelola →</a></div>
 <div id="workoutToday" class="muted">Belum ada sesi custom untuk hari ini.</div>
 </section>
-
 <div class="modal-backdrop" id="habitModal" hidden><div class="habit-modal" role="dialog" aria-modal="true">
 <div class="modal-head"><div><span class="section-kicker">KEBIASAAN</span><h2 id="habitModalTitle">Buat kebiasaan</h2></div><button class="icon-close" id="closeHabitModal">×</button></div>
 <div class="habit-form">
