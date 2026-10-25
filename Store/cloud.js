@@ -579,6 +579,20 @@ function scheduleInitialSync(){
 
 window.ReadinessCloud={queueSync,syncNow,getStatus:()=>({configured,userId:user?.id||null,syncing})};
 
+// Retry pending local changes when connectivity returns. Offline writes remain
+// in the existing local store; this only asks the existing conflict-safe sync
+// path to try again and does not bypass authentication or conflict checks.
+window.addEventListener('online',()=>{
+  if(!user || suppress) return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>{
+    if(navigator.onLine && user && !syncing) {
+      console.info('[Readiness Cloud] Network restored; retrying queued sync.');
+      syncNow();
+    }
+  },500);
+});
+
 // cloud.js is loaded at the end of each page, but handle both normal loads
 // and cases where this script executes after DOMContentLoaded (cache/navigation).
 if(document.readyState==='loading') {
