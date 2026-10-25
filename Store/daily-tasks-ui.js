@@ -41,6 +41,8 @@
     const day = api().DAYS.find(item => item.value === selectedDay);
     $('dailySelectedDate').textContent = day.label+' · '+new Date(selectedDate+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long'});
     $('dailyTaskDayHint').textContent = day.label;
+    $('dailySubScheduleDayHint').textContent = day.label;
+    renderSubScheduleOptions();
     const tasks = api().getTasksForDay(selectedDay, selectedDate);
     const progress = api().getProgress(selectedDay, selectedDate);
     $('dailyProgressText').textContent = progress.completed+' dari '+progress.total+' kegiatan selesai';
@@ -51,9 +53,24 @@
       $('dailySchedule').innerHTML = '<div class="daily-empty"><span>✦</span><strong>Belum ada jadwal untuk '+esc(day.label)+'</strong><p>Isi nama kegiatan dan jamnya pada formulir di atas.</p></div>';
       return;
     }
-    $('dailySchedule').innerHTML = '<section class="daily-task-group"><div class="daily-group-title"><span class="daily-category-icon">✦</span><strong>Rencana hari ini</strong><span>'+tasks.length+' kegiatan</span></div>'+
-      tasks.map(task => '<article class="daily-task '+(task.completed?'is-complete':'')+'"><label class="daily-task-check"><input type="checkbox" data-complete="'+esc(task.id)+'" '+(task.completed?'checked':'')+' aria-label="Tandai '+esc(task.title)+' selesai"><span aria-hidden="true">'+(task.completed?'✓':'')+'</span></label><div class="daily-task-main"><strong>'+esc(task.title)+'</strong><div class="daily-task-meta"><span>'+esc(task.startTime)+'–'+esc(task.endTime)+'</span>'+(task.note?'<span>'+esc(task.note)+'</span>':'')+'</div></div><div class="daily-task-actions"><button type="button" data-edit-task="'+esc(task.id)+'" aria-label="Edit '+esc(task.title)+'">Edit</button><button type="button" data-delete-task="'+esc(task.id)+'" aria-label="Hapus '+esc(task.title)+'">×</button></div></article>'
-      ).join('')+'</section>';
+    const taskMarkup = task => '<article class="daily-task '+(task.completed?'is-complete':'')+'"><label class="daily-task-check"><input type="checkbox" data-complete="'+esc(task.id)+'" '+(task.completed?'checked':'')+' aria-label="Tandai '+esc(task.title)+' selesai"><span aria-hidden="true">'+(task.completed?'✓':'')+'</span></label><div class="daily-task-main"><strong>'+esc(task.title)+'</strong><div class="daily-task-meta"><span>'+esc(task.startTime)+'–'+esc(task.endTime)+'</span>'+(task.note?'<span>'+esc(task.note)+'</span>':'')+'</div></div><div class="daily-task-actions"><button type="button" data-edit-task="'+esc(task.id)+'" aria-label="Edit '+esc(task.title)+'">Edit</button><button type="button" data-delete-task="'+esc(task.id)+'" aria-label="Hapus '+esc(task.title)+'">×</button></div></article>';
+    const subSchedules = api().getSubSchedules().filter(item => item.dayOfWeek === selectedDay);
+    const mainTasks = tasks.filter(task => !task.subScheduleId);
+    let html = '';
+    if (mainTasks.length) html += '<section class="daily-task-group"><div class="daily-group-title"><span class="daily-category-icon">✦</span><strong>Jadwal utama</strong><span>'+mainTasks.length+' kegiatan</span></div>'+mainTasks.map(taskMarkup).join('')+'</section>';
+    subSchedules.forEach(sub => {
+      const subTasks = tasks.filter(task => task.subScheduleId === sub.id);
+      html += '<section class="daily-task-group daily-sub-schedule"><div class="daily-group-title"><span class="daily-category-icon">◈</span><strong>'+esc(sub.name)+'</strong><span>'+subTasks.length+' kegiatan</span><div class="daily-task-actions"><button type="button" data-rename-sub="'+esc(sub.id)+'">Ubah nama</button><button type="button" data-delete-sub="'+esc(sub.id)+'">Hapus sub jadwal</button></div></div>'+(subTasks.length ? subTasks.map(taskMarkup).join('') : '<p class="muted">Belum ada kegiatan di sub jadwal ini.</p>')+'</section>';
+    });
+    $('dailySchedule').innerHTML = html || '<div class="daily-empty"><span>✦</span><strong>Belum ada jadwal untuk '+esc(day.label)+'</strong><p>Tambahkan sub jadwal atau isi kegiatan pada formulir di atas.</p></div>';
+  }
+  function renderSubScheduleOptions() {
+    const select = $('dailyTaskSubSchedule');
+    if (!select) return;
+    const previous = select.value;
+    const options = api().getSubSchedules().filter(item => item.dayOfWeek === selectedDay);
+    select.innerHTML = '<option value="">Jadwal utama (tanpa sub jadwal)</option>' + options.map(item => '<option value="'+esc(item.id)+'">'+esc(item.name)+'</option>').join('');
+    if (options.some(item => item.id === previous)) select.value = previous;
   }
   function renderAll() { renderDayTabs(); renderSchedule(); }
 
@@ -65,6 +82,17 @@
     try { sessionStorage.setItem(selectedDayStorageKey, String(selectedDay)); } catch (_) {}
     renderAll();
   });
+  $('dailySubScheduleForm').addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      const sub = api().addSubSchedule({ name: $('dailySubScheduleName').value, dayOfWeek: selectedDay });
+      $('dailySubScheduleName').value = '';
+      $('dailyFormMessage').textContent = 'Sub jadwal "'+sub.name+'" dibuat untuk '+api().DAYS.find(d => d.value === selectedDay).label+'. Pilih sub jadwal saat menambahkan kegiatan.';
+      renderAll();
+    } catch (error) {
+      $('dailyFormMessage').textContent = error.message || 'Sub jadwal gagal dibuat.';
+    }
+  });
   $('dailyTaskForm').addEventListener('submit', event => {
     event.preventDefault();
     try {
@@ -72,6 +100,7 @@
         categoryId: activeCategory().id,
         title: $('dailyTaskTitle').value,
         dayOfWeek: selectedDay,
+        subScheduleId: $('dailyTaskSubSchedule').value,
         startTime: $('dailyStartTime').value,
         endTime: $('dailyEndTime').value,
         note: $('dailyTaskNote').value
@@ -96,6 +125,27 @@
   $('dailySchedule').addEventListener('click', event => {
     const editButton = event.target.closest('[data-edit-task]');
     const deleteButton = event.target.closest('[data-delete-task]');
+    const renameSubButton = event.target.closest('[data-rename-sub]');
+    const deleteSubButton = event.target.closest('[data-delete-sub]');
+    if (renameSubButton) {
+      const sub = api().getSubSchedules().find(item => item.id === renameSubButton.dataset.renameSub);
+      if (sub) {
+        const name = prompt('Nama sub jadwal:', sub.name);
+        if (name !== null) {
+          try { api().updateSubSchedule(sub.id, { name }); renderAll(); }
+          catch (error) { $('dailyFormMessage').textContent = error.message || 'Sub jadwal gagal diubah.'; }
+        }
+      }
+      return;
+    }
+    if (deleteSubButton) {
+      const sub = api().getSubSchedules().find(item => item.id === deleteSubButton.dataset.deleteSub);
+      if (sub && confirm('Hapus sub jadwal "'+sub.name+'"? Kegiatannya akan dipindahkan ke Jadwal utama, bukan dihapus.')) {
+        try { api().deleteSubSchedule(sub.id); renderAll(); }
+        catch (error) { $('dailyFormMessage').textContent = error.message || 'Sub jadwal gagal dihapus.'; }
+      }
+      return;
+    }
     if (deleteButton) {
       const task = api().getSchedules().find(item => item.id === deleteButton.dataset.deleteTask);
       if (task && confirm('Hapus kegiatan "'+task.title+'" dari jadwal? Riwayat penyelesaian lama tetap disimpan.')) {
