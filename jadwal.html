@@ -30,6 +30,17 @@
     <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
     <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
   </section>
+  <section class="card daily-quick-card">
+    <div class="section-head"><div><span class="section-kicker">CARA CEPAT</span><h2>Tambah jadwal dari teks</h2></div><span class="badge badge-blue">Batch</span></div>
+    <p class="muted">Satu baris untuk satu tugas. Format: <code>kategori, hari, pelajaran/tugas</code>. Contoh: <code>GoldenTime, Senin, Matematika</code>. Kamu juga bisa menambahkan jam di akhir.</p>
+    <div class="daily-format-example"><code>GoldenTime, Senin, Matematika, 04:00-04:45</code><code>Sekolah, Selasa, Bahasa Indonesia, 07:00-08:00</code><code>Platinum Time, Rabu, Belajar coding</code></div>
+    <label class="daily-bulk-label" for="dailyBulkInput">Daftar jadwal</label>
+    <textarea id="dailyBulkInput" rows="5" placeholder="GoldenTime, Senin, Matematika&#10;GoldenTime, Selasa, Bahasa Inggris&#10;Sekolah, Rabu, Biologi, 07:00-08:00"></textarea>
+    <p class="muted">Jika jam tidak ditulis, otomatis memakai 04:00–04:30. Kategori yang belum ada akan dibuat otomatis.</p>
+    <div class="daily-bulk-actions"><button class="btn btn-secondary" type="button" id="dailyBulkPreviewBtn">Periksa format</button><button class="btn btn-primary" type="button" id="dailyBulkAddBtn" disabled>Tambah semua jadwal</button></div>
+    <div id="dailyBulkPreview" class="daily-bulk-preview" aria-live="polite"></div>
+    <p id="dailyBulkStatus" class="daily-form-message" role="status" aria-live="polite"></p>
+  </section>
   <section class="card">
     <div class="section-head"><div><span class="section-kicker">KATEGORI UTAMA</span><h2>Kelola kategori</h2></div></div>
     <p class="muted">Contoh: Platinum Time, Sekolah, Ibadah, Kesehatan. Menjeda kategori menyembunyikan tugasnya dari jadwal tanpa menghapus data.</p>
