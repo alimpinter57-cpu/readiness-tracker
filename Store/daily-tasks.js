@@ -75,15 +75,13 @@
 
   function addSubSchedule(input = {}) {
     const name = String(input.name || '').trim();
-    const dayOfWeek = Number(input.dayOfWeek);
-    if (!name) throw new Error('Nama sub jadwal wajib diisi.');
-    if (name.length > 50) throw new Error('Nama sub jadwal maksimal 50 karakter.');
-    if (!Number.isInteger(dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 7) throw new Error('Pilih hari yang valid.');
+    if (!name) throw new Error('Nama kelompok tugas wajib diisi.');
+    if (name.length > 50) throw new Error('Nama kelompok tugas maksimal 50 karakter.');
     const items = getSubSchedules();
-    if (items.some(item => item.dayOfWeek === dayOfWeek && item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
-      throw new Error('Sub jadwal dengan nama itu sudah ada pada hari tersebut.');
+    if (items.some(item => item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      throw new Error('Kelompok tugas dengan nama itu sudah ada.');
     }
-    const item = { id: uid('sub'), name, dayOfWeek, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const item = { id: uid('sub'), name, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     write(KEYS.subSchedules, [...items, item]);
     return item;
   }
@@ -94,8 +92,8 @@
     if (!current) throw new Error('Sub jadwal tidak ditemukan.');
     const name = patch.name === undefined ? current.name : String(patch.name).trim();
     if (!name || name.length > 50) throw new Error('Nama sub jadwal harus 1–50 karakter.');
-    if (items.some(item => item.id !== id && item.dayOfWeek === current.dayOfWeek && item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
-      throw new Error('Nama sub jadwal sudah dipakai pada hari tersebut.');
+    if (items.some(item => item.id !== id && item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      throw new Error('Nama kelompok tugas sudah dipakai.');
     }
     const next = { ...current, ...patch, name, updatedAt: new Date().toISOString() };
     write(KEYS.subSchedules, items.map(item => item.id === id ? next : item));
@@ -129,7 +127,7 @@
     const subScheduleId = String(input.subScheduleId || '').trim() || null;
     if (subScheduleId) {
       const subSchedule = getSubSchedules().find(item => item.id === subScheduleId);
-      if (!subSchedule || subSchedule.dayOfWeek !== dayOfWeek) throw new Error('Sub jadwal tidak sesuai dengan hari yang dipilih.');
+      if (!subSchedule) throw new Error('Kelompok tugas tidak ditemukan.');
     }
     const schedules = getSchedules();
     const task = {
@@ -162,7 +160,7 @@
     next.subScheduleId = String(next.subScheduleId || '').trim() || null;
     if (next.subScheduleId) {
       const subSchedule = getSubSchedules().find(item => item.id === next.subScheduleId);
-      if (!subSchedule || subSchedule.dayOfWeek !== next.dayOfWeek) throw new Error('Sub jadwal tidak sesuai dengan hari yang dipilih.');
+      if (!subSchedule) throw new Error('Kelompok tugas tidak ditemukan.');
     }
     if (!Number.isInteger(next.dayOfWeek) || next.dayOfWeek < 1 || next.dayOfWeek > 7) throw new Error('Hari tidak valid.');
     const timePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -190,10 +188,11 @@
     const dateStr = typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : date;
     const categories = new Map(getCategories().map(item => [item.id, item]));
     const dailyLog = getLogs()[dateStr] || {};
+    const subSchedules = new Map(getSubSchedules().map(item => [item.id, item]));
     return getSchedules()
       .filter(item => item.enabled !== false && item.dayOfWeek === dayNum && categories.get(item.categoryId)?.enabled !== false)
       .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.order - b.order)
-      .map(item => ({ ...item, category: categories.get(item.categoryId) || null, subSchedule: getSubSchedules().find(sub => sub.id === item.subScheduleId) || null, completed: dailyLog[item.id]?.completed === true, completedAt: dailyLog[item.id]?.completedAt || null }));
+      .map(item => ({ ...item, category: categories.get(item.categoryId) || null, subSchedule: subSchedules.get(item.subScheduleId) || null, completed: dailyLog[item.id]?.completed === true, completedAt: dailyLog[item.id]?.completedAt || null }));
   }
 
   function setCompleted(taskId, completed, date = today()) {
@@ -218,6 +217,33 @@
   function getState() {
     return { categories: getCategories(), schedules: getSchedules(), logs: getLogs() };
   }
+
+  // Safe one-time migration from per-day groups. Consolidates duplicate names and remaps tasks without deleting them.
+  function migrateSubSchedulesToReusableGroups() {
+    const original = getSubSchedules();
+    if (!original.length) return;
+    const canonicalByName = new Map(), idMap = new Map(), normalized = [];
+    let changed = false;
+    original.forEach(item => {
+      const name = String(item.name || '').trim();
+      const key = name.toLocaleLowerCase();
+      const existing = canonicalByName.get(key);
+      if (existing) { idMap.set(item.id, existing.id); changed = true; }
+      else {
+        const clean = { id: item.id, name, createdAt: item.createdAt || new Date().toISOString(), updatedAt: item.updatedAt || new Date().toISOString() };
+        canonicalByName.set(key, clean); idMap.set(item.id, clean.id); normalized.push(clean);
+        if (Object.prototype.hasOwnProperty.call(item, 'dayOfWeek')) changed = true;
+      }
+    });
+    if (!changed) return;
+    const schedules = getSchedules().map(task => {
+      const mapped = task.subScheduleId ? idMap.get(task.subScheduleId) : null;
+      return mapped && mapped !== task.subScheduleId ? { ...task, subScheduleId: mapped, updatedAt: new Date().toISOString() } : task;
+    });
+    write(KEYS.schedules, schedules);
+    write(KEYS.subSchedules, normalized);
+  }
+  migrateSubSchedulesToReusableGroups();
 
   window.DailyTasks = Object.freeze({
     KEYS, DAYS, today, dayNumber, getCategories, getSchedules, getLogs, getState,
