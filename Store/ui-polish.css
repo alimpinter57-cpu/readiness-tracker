@@ -128,10 +128,3 @@ button,input,select,textarea{font-family:'DM Sans',system-ui,sans-serif}
 @media(prefers-reduced-motion:reduce){
   .topnav>.tabs a{transition:none}
 }
-\n
-/* Separate recurring reminder controls */
-.reminder-days{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
-.reminder-days label{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--ui-card-border);border-radius:10px;background:rgba(27,38,56,.38);font-size:12px}
-.daily-task-form .reminder-days input[type="checkbox"]{width:16px;height:16px;min-height:16px;margin:0;accent-color:var(--green)}
-#reminderList .daily-task-actions{display:flex;flex-wrap:wrap;gap:5px}
-#reminderList .daily-task-actions button{font-size:11px}
