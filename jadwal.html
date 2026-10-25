@@ -27,11 +27,11 @@
   </section>
     <section class="card">
     <div class="section-head"><div><span class="section-kicker">SUB JADWAL</span><h2>Buat kelompok kegiatan</h2></div></div>
-    <p class="muted">Contoh: Golden Time atau Platinum Time. Sub jadwal dibuat khusus untuk hari yang sedang dipilih.</p>
+    <p class="muted">Contoh: Golden Time atau Platinum Time. Buat kelompok sekali, lalu gunakan lagi di hari mana pun. Kegiatan dan jamnya tetap bisa berbeda setiap hari.</p>
     <form id="dailySubScheduleForm" class="daily-task-form">
       <label for="dailySubScheduleName">Nama sub jadwal</label>
       <input id="dailySubScheduleName" name="subScheduleName" type="text" maxlength="50" placeholder="Contoh: Golden Time" required>
-      <button class="btn" type="submit">+ Buat sub jadwal untuk <span id="dailySubScheduleDayHint">hari ini</span></button>
+      <button class="btn" type="submit">+ Buat kelompok tugas</button>
     </form>
   </section>
   <section class="card">
@@ -56,7 +56,24 @@
     <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
     <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
   </section>
-  <footer class="footer-note">Data tugas memakai penyimpanan Readiness yang sudah ada. Perubahan lokal dapat masuk antrean sinkronisasi cloud jika akun dan koneksi cloud telah dikonfigurasi.</footer>
+  <section class="card" id="reminders">
+    <div class="section-head"><div><span class="section-kicker">PENGINGAT</span><h2>Jadwal pengingat</h2></div></div>
+    <p class="muted">Pengingat terpisah dari daftar tugas. Notifikasi hanya dapat muncul saat halaman ini terbuka, browser mengizinkan notifikasi, dan perangkat tidak membatasi prosesnya.</p>
+    <button class="mini-action" id="enableReminderNotifications" type="button">Aktifkan izin notifikasi</button>
+    <p class="muted" id="reminderStatus" role="status" aria-live="polite">Pengingat tersimpan di perangkat ini.</p>
+    <form id="reminderForm" class="daily-task-form">
+      <input id="reminderId" type="hidden">
+      <label for="reminderTitle">Nama pengingat</label><input id="reminderTitle" type="text" maxlength="80" placeholder="Contoh: Mulai belajar" required>
+      <label for="reminderTime">Waktu</label><input id="reminderTime" type="time" value="04:00" required>
+      <span class="muted">Ulangi pada hari</span>
+      <div class="reminder-days" role="group" aria-label="Hari pengingat">
+        <label><input type="checkbox" name="reminderDay" value="1"> Sen</label><label><input type="checkbox" name="reminderDay" value="2"> Sel</label><label><input type="checkbox" name="reminderDay" value="3"> Rab</label><label><input type="checkbox" name="reminderDay" value="4"> Kam</label><label><input type="checkbox" name="reminderDay" value="5"> Jum</label><label><input type="checkbox" name="reminderDay" value="6"> Sab</label><label><input type="checkbox" name="reminderDay" value="7"> Min</label>
+      </div>
+      <button class="btn" id="saveReminderButton" type="submit">+ Simpan pengingat</button><button class="mini-action" id="cancelReminderEdit" type="button" hidden>Batal edit</button>
+    </form>
+    <div id="reminderList" class="daily-schedule" aria-live="polite"></div>
+  </section>
+  <footer class="footer-note">Data tugas memakai penyimpanan Readiness yang sudah ada. Perubahan lokal dapat masuk antrean sinkronisasi cloud jika akun dan koneksi cloud telah dikonfigurasi. Pengingat disimpan pada kunci data terpisah di perangkat ini.</footer>
 </main>
 </div>
 <script src="Store/store.js?v=20261010-3"></script>
@@ -64,6 +81,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="Store/cloud.js?v=20261010-3"></script>
 <script src="Store/daily-tasks.js?v=daily-tasks-1"></script>
-<script src="Store/daily-tasks-ui.js?v=daily-tasks-1"></script>
+<script src="Store/daily-tasks-ui.js?v=daily-tasks-2"></script>
+<script src="Store/reminders.js?v=reminders-1"></script>
 </body>
 </html>
