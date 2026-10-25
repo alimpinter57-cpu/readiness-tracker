@@ -65,5 +65,15 @@
 <script src="Store/cloud.js?v=20261010-3"></script>
 <script src="Store/daily-tasks.js?v=daily-tasks-3"></script>
 <script src="Store/daily-tasks-ui.js?v=daily-tasks-3"></script>
+<script>
+// Register the offline app shell only on secure origins (HTTPS or localhost).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(error => {
+      console.error("[Readiness PWA] Service worker registration failed:", error);
+    });
+  }, { once: true });
+}
+</script>
 </body>
 </html>
