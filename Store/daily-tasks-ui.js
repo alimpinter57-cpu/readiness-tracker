@@ -44,17 +44,17 @@
     $('dailySubScheduleDayHint').textContent = day.label;
     renderSubScheduleOptions();
     const tasks = api().getTasksForDay(selectedDay, selectedDate);
+    const subSchedules = api().getSubSchedules().filter(item => item.dayOfWeek === selectedDay);
     const progress = api().getProgress(selectedDay, selectedDate);
     $('dailyProgressText').textContent = progress.completed+' dari '+progress.total+' kegiatan selesai';
     $('dailyProgressPercent').textContent = progress.percent+'%';
     $('dailyProgressBar').style.width = progress.percent+'%';
     $('dailyProgressBar').parentElement.setAttribute('aria-valuenow', String(progress.percent));
-    if (!tasks.length) {
-      $('dailySchedule').innerHTML = '<div class="daily-empty"><span>✦</span><strong>Belum ada jadwal untuk '+esc(day.label)+'</strong><p>Isi nama kegiatan dan jamnya pada formulir di atas.</p></div>';
+    if (!tasks.length && !subSchedules.length) {
+      $('dailySchedule').innerHTML = '<div class="daily-empty"><span>✦</span><strong>Belum ada jadwal untuk '+esc(day.label)+'</strong><p>Tambahkan sub jadwal atau isi kegiatan pada formulir di atas.</p></div>';
       return;
     }
     const taskMarkup = task => '<article class="daily-task '+(task.completed?'is-complete':'')+'"><label class="daily-task-check"><input type="checkbox" data-complete="'+esc(task.id)+'" '+(task.completed?'checked':'')+' aria-label="Tandai '+esc(task.title)+' selesai"><span aria-hidden="true">'+(task.completed?'✓':'')+'</span></label><div class="daily-task-main"><strong>'+esc(task.title)+'</strong><div class="daily-task-meta"><span>'+esc(task.startTime)+'–'+esc(task.endTime)+'</span>'+(task.note?'<span>'+esc(task.note)+'</span>':'')+'</div></div><div class="daily-task-actions"><button type="button" data-edit-task="'+esc(task.id)+'" aria-label="Edit '+esc(task.title)+'">Edit</button><button type="button" data-delete-task="'+esc(task.id)+'" aria-label="Hapus '+esc(task.title)+'">×</button></div></article>';
-    const subSchedules = api().getSubSchedules().filter(item => item.dayOfWeek === selectedDay);
     const mainTasks = tasks.filter(task => !task.subScheduleId);
     let html = '';
     if (mainTasks.length) html += '<section class="daily-task-group"><div class="daily-group-title"><span class="daily-category-icon">✦</span><strong>Jadwal utama</strong><span>'+mainTasks.length+' kegiatan</span></div>'+mainTasks.map(taskMarkup).join('')+'</section>';
