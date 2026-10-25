@@ -128,3 +128,24 @@ button,input,select,textarea{font-family:'DM Sans',system-ui,sans-serif}
 @media(prefers-reduced-motion:reduce){
   .topnav>.tabs a{transition:none}
 }
+
+/* Quick bulk schedule entry */
+.daily-quick-card .daily-format-example{display:grid;gap:7px;padding:12px;margin:14px 0;border:1px solid rgba(181,140,255,.18);border-radius:13px;background:rgba(181,140,255,.055)}
+.daily-format-example code{font-size:11px;line-height:1.55;overflow-wrap:anywhere;color:#d8c9ff}
+.daily-quick-card .daily-bulk-label{display:block;margin:16px 0 7px;color:var(--muted);font-size:11px;font-weight:700}
+.daily-quick-card textarea{display:block;width:100%;min-height:124px;resize:vertical;padding:13px;border:1px solid var(--line);border-radius:12px;background:#0c1320;color:var(--text);font:12px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;color-scheme:dark}
+.daily-quick-card textarea:focus{outline:2px solid rgba(181,140,255,.55);outline-offset:2px}
+.daily-bulk-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.daily-bulk-actions .btn{flex:1;min-width:145px}
+.daily-bulk-actions button:disabled{opacity:.42;cursor:not-allowed}
+.daily-bulk-preview{display:grid;gap:8px;margin-top:12px}
+.daily-bulk-row{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start;padding:11px;border:1px solid rgba(103,232,173,.18);border-radius:12px;background:rgba(27,38,56,.38)}
+.daily-bulk-row>span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:rgba(103,232,173,.12);color:var(--green);font-weight:800}
+.daily-bulk-row>div{display:grid;gap:4px;min-width:0}
+.daily-bulk-row strong{font-size:12px}
+.daily-bulk-row small{font-size:10px;color:var(--muted)}
+.daily-bulk-row code{font-size:11px;overflow-wrap:anywhere;color:var(--text)}
+.daily-bulk-row.is-invalid{border-color:rgba(255,120,120,.28)}
+.daily-bulk-row.is-invalid>span{background:rgba(255,120,120,.12);color:#ff9999}
+.daily-bulk-row.is-invalid small,.daily-bulk-error{color:#ff9999;font-size:11px}
+@media(max-width:560px){.daily-bulk-actions{flex-direction:column}.daily-bulk-actions .btn{width:100%}}
