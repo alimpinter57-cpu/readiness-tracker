@@ -17,6 +17,23 @@
 <div class="progress-ring" id="progressRing"><strong id="dailyPercent">0%</strong><span>hari ini</span></div></div>
 <div class="week-strip" id="weekStrip"></div>
 </section>
+<section class="card school-omnibar-card">
+  <div class="section-head"><div><span class="section-kicker">INPUT CEPAT</span><h2>Catatan & tugas sekolah</h2></div></div>
+  <p class="school-omni-intro">Tulis seperti biasa. Tanggal dan jam akan dipratinjau sebelum disimpan.</p>
+  <form id="schoolOmniForm" class="school-omni-form">
+    <label class="school-omni-label" for="schoolOmniInput">Apa yang perlu dicatat?</label>
+    <div class="school-omni-entry"><input id="schoolOmniInput" maxlength="180" autocomplete="off" placeholder="Contoh: PR Matematika kumpul Jumat jam 10" aria-describedby="schoolOmniMessage"><button type="submit" class="school-omni-submit" aria-label="Pratinjau catatan">→</button></div>
+    <div class="school-omni-chips" aria-label="Pintasan"><button type="button" data-school-chip="Besok">Besok</button><button type="button" data-school-chip="Tugas">Tugas</button><button type="button" data-school-chip="Ujian">Ujian</button><button type="button" data-school-chip="Piket">Piket</button></div>
+    <p id="schoolOmniMessage" class="school-omni-message" aria-live="polite"></p>
+    <section id="schoolOmniPreview" class="school-omni-preview" hidden>
+      <div class="school-omni-preview-head"><strong>Periksa sebelum simpan</strong><span id="schoolOmniTypePreview"></span></div>
+      <strong id="schoolOmniTitlePreview" class="school-omni-preview-title"></strong><p id="schoolOmniDatePreview" class="school-omni-preview-date"></p>
+      <div class="school-omni-date-fields"><label>Tenggat tanggal<input id="schoolOmniDate" type="date"></label><label>Jam (opsional)<input id="schoolOmniTime" type="time"></label></div>
+      <div class="school-omni-actions"><button type="button" id="schoolOmniCancel" class="mini-action">Batal</button><button type="button" id="schoolOmniSave" class="school-omni-save">Simpan tugas</button></div>
+    </section>
+  </form>
+  <div class="school-task-list-head"><h3>Daftar tugas & tenggat</h3><span>Centang jika selesai</span></div><div id="schoolTaskList" class="school-task-list" aria-live="polite"></div>
+</section>
 <section class="card">
 <div class="section-head"><div><span class="section-kicker">KEBIASAAN HARI INI</span><h2 id="habitSummary">0 kebiasaan</h2></div><button class="mini-action" id="addHabitBtn">＋ Tambah</button></div>
 <div id="habitList" class="habit-list"></div>
@@ -40,7 +57,7 @@
 </div></div>
 <footer class="footer-note">Semua data kebiasaan tersimpan di perangkat ini. Sistem ini membantu membangun pola, bukan diagnosis medis.</footer>
 </main></div>
-<script src="Store/store.js?v=20261010-3"></script><script src="Store/supabase-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="Store/cloud.js?v=20261010-3"></script><script src="Store/home.js?v=20261010-3"></script><script src="Store/school-omnibar.js?v=school-omnibar-1"></script>
+<script src="Store/store.js?v=20261010-3"></script><script src="Store/supabase-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="Store/cloud.js?v=20261010-3"></script><script src="Store/home.js?v=20261010-3"></script><script src="Store/school-omnibar.js?v=school-omnibar-1"></script><script src="Store/school-omnibar.js?v=school-omnibar-1"></script>
 <script>
 (() => {
   const button = document.getElementById('cloudSettingsButton');
