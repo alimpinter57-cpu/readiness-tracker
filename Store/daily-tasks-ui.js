@@ -4,7 +4,16 @@
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const api = () => window.DailyTasks;
-  let selectedDay = api().dayNumber();
+  const selectedDayStorageKey = 'readiness:dailyTaskSelectedDay';
+  const readSelectedDay = () => {
+    try {
+      const saved = Number(sessionStorage.getItem(selectedDayStorageKey));
+      return Number.isInteger(saved) && saved >= 1 && saved <= 7 ? saved : api().dayNumber();
+    } catch (_) {
+      return api().dayNumber();
+    }
+  };
+  let selectedDay = readSelectedDay();
   const currentWeekDate = day => {
     const now = new Date();
     const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -73,6 +82,7 @@
     if (!button) return;
     selectedDay = Number(button.dataset.day);
     selectedDate = currentWeekDate(selectedDay);
+    try { sessionStorage.setItem(selectedDayStorageKey, String(selectedDay)); } catch (_) {}
     renderAll();
   });
 
