@@ -44,7 +44,7 @@
     $('dailySubScheduleDayHint').textContent = day.label;
     renderSubScheduleOptions();
     const tasks = api().getTasksForDay(selectedDay, selectedDate);
-    const subSchedules = api().getSubSchedules().filter(item => item.dayOfWeek === selectedDay);
+    const subSchedules = api().getSubSchedules();
     const progress = api().getProgress(selectedDay, selectedDate);
     $('dailyProgressText').textContent = progress.completed+' dari '+progress.total+' kegiatan selesai';
     $('dailyProgressPercent').textContent = progress.percent+'%';
@@ -68,7 +68,7 @@
     const select = $('dailyTaskSubSchedule');
     if (!select) return;
     const previous = select.value;
-    const options = api().getSubSchedules().filter(item => item.dayOfWeek === selectedDay);
+    const options = api().getSubSchedules();
     select.innerHTML = '<option value="">Jadwal utama (tanpa sub jadwal)</option>' + options.map(item => '<option value="'+esc(item.id)+'">'+esc(item.name)+'</option>').join('');
     if (options.some(item => item.id === previous)) select.value = previous;
   }
@@ -85,9 +85,9 @@
   $('dailySubScheduleForm').addEventListener('submit', event => {
     event.preventDefault();
     try {
-      const sub = api().addSubSchedule({ name: $('dailySubScheduleName').value, dayOfWeek: selectedDay });
+      const sub = api().addSubSchedule({ name: $('dailySubScheduleName').value });
       $('dailySubScheduleName').value = '';
-      $('dailyFormMessage').textContent = 'Sub jadwal "'+sub.name+'" dibuat untuk '+api().DAYS.find(d => d.value === selectedDay).label+'. Pilih sub jadwal saat menambahkan kegiatan.';
+      $('dailyFormMessage').textContent = 'Kelompok "'+sub.name+'" dibuat. Kelompok ini tersedia untuk semua hari; isi kegiatannya secara terpisah pada setiap hari.';
       renderAll();
     } catch (error) {
       $('dailyFormMessage').textContent = error.message || 'Sub jadwal gagal dibuat.';
