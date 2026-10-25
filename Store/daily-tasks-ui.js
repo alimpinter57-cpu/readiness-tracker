@@ -170,7 +170,8 @@
     }
   });
 
-  // Cloud restoration replaces localStorage after authentication. Repaint from the restored snapshot.
+  // Refresh after bulk schedule creation and cloud restoration.
+  window.addEventListener('readiness:daily-tasks-updated', () => renderAll());
   window.addEventListener('readiness:cloud-restored', () => renderAll());
 
   ensureDefaultCategory();
