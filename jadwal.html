@@ -7,6 +7,7 @@
 <title>Jadwal Harian — Readiness</title>
 <link rel="stylesheet" href="Store/style.css?v=20261008-5">
 <link rel="stylesheet" href="Store/enhancements.css?v=daily-tasks-1">
+<link rel="stylesheet" href="Store/ui-polish.css">
 </head>
 <body>
 <div class="app-shell">
@@ -24,13 +25,11 @@
     <div class="daily-progress-head"><div><strong id="dailySelectedDate">Hari ini</strong><span id="dailyProgressText">0 dari 0 tugas selesai</span></div><strong id="dailyProgressPercent">0%</strong></div>
     <div class="daily-progress-track" role="progressbar" aria-label="Progres tugas hari terpilih" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="dailyProgressBar"></span></div>
   </section>
-
   <section class="card">
     <div class="section-head"><div><span class="section-kicker">PILIH HARI</span><h2>Jadwal mingguan</h2></div></div>
     <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
     <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
   </section>
-
   <section class="card">
     <div class="section-head"><div><span class="section-kicker">KATEGORI UTAMA</span><h2>Kelola kategori</h2></div></div>
     <p class="muted">Contoh: Platinum Time, Sekolah, Ibadah, Kesehatan. Menjeda kategori menyembunyikan tugasnya dari jadwal tanpa menghapus data.</p>
@@ -42,7 +41,6 @@
       <button class="btn btn-secondary" type="submit">＋ Tambah kategori</button>
     </form>
   </section>
-
   <section class="card">
     <div class="section-head"><div><span class="section-kicker">TUGAS TERJADWAL</span><h2>Tambah tugas</h2></div></div>
     <p class="muted">Tugas akan masuk ke hari yang sedang dipilih: <strong id="dailyTaskDayHint">hari ini</strong>. Setiap hari dapat memiliki jadwal berbeda.</p>
