@@ -129,33 +129,3 @@ button,input,select,textarea{font-family:'DM Sans',system-ui,sans-serif}
   .topnav>.tabs a{transition:none}
 }
 \n
-/* Student school-task omnibar */
-.school-omnibar-card{border-color:rgba(103,232,173,.18)}
-.school-omni-intro{margin:0 0 16px;color:var(--muted);font-size:12px;line-height:1.6}
-.school-omni-form{display:grid;gap:12px}
-.school-omni-label,.school-omni-date-fields label{display:grid;gap:7px;font-size:11px;color:var(--muted);font-weight:700}
-.school-omni-entry{display:flex;gap:8px;align-items:center}
-.school-omni-entry input{width:100%;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1px solid rgba(137,149,170,.25);background:#0b1220;color:var(--text);font:500 13px 'DM Sans',sans-serif;outline:none}
-.school-omni-entry input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(103,232,173,.08)}
-.school-omni-submit{width:50px;height:50px;flex:0 0 50px;border:0;border-radius:14px;background:var(--green);color:#06120d;font-size:25px;font-weight:700;cursor:pointer}
-.school-omni-chips{display:flex;gap:7px;flex-wrap:wrap}
-.school-omni-chips button{border:1px solid rgba(137,149,170,.2);background:rgba(27,38,56,.65);color:var(--text);padding:8px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer}
-.school-omni-chips button.is-selected{border-color:var(--green);background:rgba(103,232,173,.12);color:var(--green)}
-.school-omni-message{min-height:1.2em;margin:0;color:var(--muted);font-size:11px}
-.school-omni-message[data-state="ok"]{color:var(--green)}.school-omni-message[data-state="error"]{color:#ff9d9d}
-.school-omni-preview{padding:15px;border:1px solid rgba(103,232,173,.2);border-radius:16px;background:rgba(10,18,30,.85);display:grid;gap:10px}
-.school-omni-preview[hidden]{display:none}
-.school-omni-preview-head,.school-task-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.school-omni-preview-head strong{font-size:12px}.school-omni-preview-head span{font-size:10px;color:var(--green);background:rgba(103,232,173,.1);padding:5px 8px;border-radius:999px}
-.school-omni-preview-title{font-size:14px;overflow-wrap:anywhere}.school-omni-preview-date{margin:0;color:var(--muted);font-size:11px}
-.school-omni-date-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.school-omni-date-fields input{width:100%;min-width:0;height:42px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:#0b1220;color:var(--text);font:12px 'DM Sans',sans-serif}
-.school-omni-actions{display:flex;gap:8px;justify-content:flex-end}.school-omni-save{border:0;border-radius:10px;background:var(--green);color:#06120d;font-size:11px;font-weight:700;padding:10px 13px;cursor:pointer}
-.school-task-list-head{margin-top:23px;margin-bottom:12px;align-items:baseline}.school-task-list-head h3{margin:0;font-size:14px}.school-task-list-head span{font-size:10px;color:var(--muted)}
-.school-task-list{display:grid;gap:8px}.school-omni-empty{padding:18px 12px;border:1px dashed rgba(137,149,170,.23);border-radius:14px;color:var(--muted);text-align:center;font-size:11px;line-height:1.6}
-.school-task{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;align-items:center;gap:10px;padding:12px;border:1px solid rgba(137,149,170,.16);border-radius:14px;background:rgba(27,38,56,.35)}
-.school-task.is-complete .school-task-main>strong{text-decoration:line-through;opacity:.55}
-.school-task-check{position:relative;width:28px;height:28px;display:grid;place-items:center}.school-task-check input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.school-task-check span{width:27px;height:27px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;color:transparent;font-size:14px}.school-task-check input:checked+span{background:var(--green);border-color:var(--green);color:#06120d}
-.school-task-main{min-width:0}.school-task-main>strong{display:block;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.school-task-main small{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;color:var(--muted);font-size:10px}.school-task-main small span:first-child{color:var(--blue)}
-.school-task-delete{width:28px;height:28px;border:0;border-radius:8px;background:rgba(255,255,255,.04);color:var(--muted);font-size:18px;cursor:pointer}
-@media(max-width:380px){.school-omni-date-fields{grid-template-columns:1fr}.school-task-list-head{align-items:flex-start;flex-direction:column;gap:4px}}
