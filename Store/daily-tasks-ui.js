@@ -44,7 +44,7 @@
     $('dailyProgressText').textContent = progress.completed+' dari '+progress.total+' tugas selesai';
     $('dailyProgressPercent').textContent = progress.percent+'%';
     $('dailyProgressBar').style.width = progress.percent+'%';
-    $('dailyProgressBar').setAttribute('aria-valuenow', String(progress.percent));
+    $('dailyProgressBar').parentElement.setAttribute('aria-valuenow', String(progress.percent));
     if (!tasks.length) {
       $('dailySchedule').innerHTML = '<div class="daily-empty"><span>✦</span><strong>Belum ada jadwal untuk '+esc(day.label)+'</strong><p>Tambahkan tugas menggunakan formulir di bawah.</p></div>';
       return;
@@ -159,6 +159,9 @@
       catch (error) { $('dailyFormMessage').textContent = error.message || 'Tugas gagal diperbarui.'; }
     }
   });
+
+  // Cloud restoration replaces localStorage after authentication. Repaint from the restored snapshot.
+  window.addEventListener('readiness:cloud-restored', () => renderAll());
 
   ensureDefaultCategory();
   renderAll();
