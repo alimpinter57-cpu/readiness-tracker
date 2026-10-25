@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080d16">
+<title>Jadwal Harian — Readiness</title>
+<link rel="stylesheet" href="Store/style.css?v=20261008-5">
+<link rel="stylesheet" href="Store/enhancements.css?v=daily-tasks-1">
+</head>
+<body>
+<div class="app-shell">
+<header class="topnav">
+  <a class="brand" href="index.html"><span class="brand-mark">R</span><span>Readiness<small>HABIT SYSTEM</small></span></a>
+  <nav class="tabs" aria-label="Navigasi utama">
+    <a href="index.html">Hari ini</a><a href="summary.html">Ringkasan</a><a href="jadwal.html" class="active" aria-current="page">Jadwal</a><a href="latihan/latihan.html">Workout</a>
+  </nav>
+</header>
+<main class="wrap daily-page">
+  <section class="card daily-hero">
+    <div class="eyebrow">DAILY TASK & HABIT TRACKER</div>
+    <h1>Jadwal harian</h1>
+    <p class="hero-caption">Atur kategori utama seperti Platinum Time, lalu susun tugas berbeda untuk setiap hari.</p>
+    <div class="daily-progress-head"><div><strong id="dailySelectedDate">Hari ini</strong><span id="dailyProgressText">0 dari 0 tugas selesai</span></div><strong id="dailyProgressPercent">0%</strong></div>
+    <div class="daily-progress-track" role="progressbar" aria-label="Progres tugas hari terpilih" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="dailyProgressBar"></span></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">PILIH HARI</span><h2>Jadwal mingguan</h2></div></div>
+    <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
+    <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">KATEGORI UTAMA</span><h2>Kelola kategori</h2></div></div>
+    <p class="muted">Contoh: Platinum Time, Sekolah, Ibadah, Kesehatan. Menjeda kategori menyembunyikan tugasnya dari jadwal tanpa menghapus data.</p>
+    <div id="dailyCategoryList" class="daily-category-list"></div>
+    <form id="dailyCategoryForm" class="daily-category-form">
+      <label>Nama kategori<input id="dailyNewCategory" maxlength="50" placeholder="Contoh: Platinum Time" required></label>
+      <label>Ikon<input id="dailyCategoryIcon" maxlength="4" value="✦" aria-label="Ikon kategori"></label>
+      <label>Warna<select id="dailyCategoryColor"><option value="#b58cff">Ungu</option><option value="#67e8ad">Hijau</option><option value="#75a9ff">Biru</option><option value="#f5bd68">Amber</option><option value="#63d8e9">Cyan</option></select></label>
+      <button class="btn btn-secondary" type="submit">＋ Tambah kategori</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">TUGAS TERJADWAL</span><h2>Tambah tugas</h2></div></div>
+    <p class="muted">Tugas akan masuk ke hari yang sedang dipilih: <strong id="dailyTaskDayHint">hari ini</strong>. Setiap hari dapat memiliki jadwal berbeda.</p>
+    <form id="dailyTaskForm" class="daily-task-form">
+      <label>Kategori<select id="dailyCategory" required></select><small id="dailyCategoryEmpty" hidden>Tambahkan kategori aktif terlebih dahulu.</small></label>
+      <label>Nama tugas<input id="dailyTaskTitle" maxlength="90" placeholder="Contoh: Belajar coding 30 menit" required></label>
+      <div class="daily-time-row"><label>Mulai<input id="dailyStartTime" type="time" value="04:00" required></label><label>Selesai<input id="dailyEndTime" type="time" value="04:30" required></label></div>
+      <label>Catatan (opsional)<input id="dailyTaskNote" maxlength="240" placeholder="Contoh: latihan JavaScript"></label>
+      <button class="btn btn-primary" id="dailyTaskSubmit" type="submit">＋ Simpan ke jadwal</button>
+    </form>
+    <p id="dailyFormMessage" class="daily-form-message" role="status" aria-live="polite"></p>
+  </section>
+  <footer class="footer-note">Data tugas memakai penyimpanan Readiness yang sudah ada. Perubahan lokal dapat masuk antrean sinkronisasi cloud jika akun dan koneksi cloud telah dikonfigurasi.</footer>
+</main>
+</div>
+<script src="Store/store.js?v=20261010-3"></script>
+<script src="Store/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="Store/cloud.js?v=20261010-3"></script>
+<script src="Store/daily-tasks.js?v=daily-tasks-1"></script>
+<script src="Store/daily-tasks-ui.js?v=daily-tasks-1"></script>
+<script>
+(() => {
+  const selected = document.getElementById('dailyTaskDayHint');
+  const tabs = document.getElementById('dailyDayTabs');
+  if (!selected || !tabs) return;
+  const update = () => {
+    const active = tabs.querySelector('[data-day].active');
+    const labels = ['','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+    selected.textContent = labels[Number(active?.dataset.day)] || 'hari ini';
+  };
+  tabs.addEventListener('click', () => requestAnimationFrame(update));
+  update();
+})();
+</script>
+</body>
+</html>
