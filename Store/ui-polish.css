@@ -1,0 +1,130 @@
+/* Readiness UI polish — additive overrides, preserving existing behavior */
+:root{
+  --ui-space-1: .5rem;
+  --ui-space-2: .75rem;
+  --ui-space-3: 1rem;
+  --ui-space-4: 1.25rem;
+  --ui-space-5: 1.5rem;
+  --ui-space-6: 2rem;
+  --ui-card-border: rgba(137,149,170,.16);
+  --ui-card-highlight: rgba(255,255,255,.025);
+}
+html{scroll-padding-top:6rem}
+body{line-height:1.55}
+.wrap{padding:32px 20px 68px}
+.wrap>.card,.wrap>.hero-card{margin-bottom:22px}
+.card{
+  padding:26px;
+  border-color:var(--ui-card-border);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(21,30,46,.97),rgba(13,20,32,.98));
+  box-shadow:0 14px 38px rgba(0,0,0,.16),inset 0 1px 0 var(--ui-card-highlight);
+}
+.hero-card{padding:30px}
+.dashboard-head{gap:24px}
+.dashboard-head h1,.daily-page h1{font-size:clamp(1.75rem,4.8vw,2.15rem);line-height:1.12;letter-spacing:-.045em}
+.hero-caption{max-width:42rem;font-size:13px;line-height:1.65;margin-top:10px}
+.section-head{align-items:center;gap:16px;margin-bottom:18px}
+.section-head>div:first-child{min-width:0}
+.section-kicker,.eyebrow{font-size:10px;letter-spacing:.14em}
+.section-head h2{display:block;margin:5px 0 0;font-size:18px;line-height:1.3;letter-spacing:-.025em}
+.muted{font-size:12px;line-height:1.7}
+.footer-note{margin-top:32px;line-height:1.75}
+.habit-list,.daily-schedule,.history-list,.summary-habits,.summary-edit-list{gap:12px}
+.habit-row{
+  gap:14px;padding:16px;border-radius:17px;
+  border:1px solid rgba(137,149,170,.16);
+  border-left:3px solid var(--green);
+  background:rgba(27,38,56,.42);
+}
+.habit-info strong,.daily-task-main>strong{font-size:14px;line-height:1.45}
+.habit-info small,.daily-task-meta{font-size:11px;line-height:1.55}
+.habit-icon{width:42px;height:42px;border-radius:13px}
+.habit-check{width:44px;height:42px;border-radius:13px}
+.habit-actions{gap:3px;flex-wrap:wrap;justify-content:flex-end}
+.habit-actions button{padding:7px 8px;border-radius:8px}
+.habit-actions button:hover{background:rgba(255,255,255,.045)}
+.card .muted{margin-top:12px}
+.summary-stats{gap:12px;margin:22px 0}
+.summary-stat,.summary-habit-card,.summary-edit,.history-day{
+  border-color:var(--ui-card-border);
+  border-radius:16px;
+}
+.summary-stat{padding:18px;background:rgba(27,38,56,.38)}
+.summary-stat small{font-size:11px;line-height:1.5}
+.summary-stat strong{display:block;font-size:clamp(1.4rem,4vw,1.9rem);line-height:1.2;margin-top:8px}
+.summary-habit-card{padding:16px;background:rgba(27,38,56,.34)}
+.summary-habit-card>summary{gap:14px;padding:3px}
+.summary-habit-card>summary strong{font-size:14px}
+.summary-habit-card>summary small{font-size:11px;line-height:1.5;margin-top:5px}
+.summary-track{margin:15px 0}
+.summary-edit{padding:15px;gap:14px;background:rgba(27,38,56,.36)}
+.summary-edit>div:first-child strong{font-size:13px;line-height:1.5}
+.summary-edit small{font-size:11px;line-height:1.5}
+.summary-edit p{line-height:1.6}
+.past-value{gap:10px}
+.past-value input[type="number"],.past-value input[type="checkbox"]{accent-color:var(--green)}
+.past-value input[type="number"]{min-height:42px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;background:#0c1320;color:var(--text);font:13px 'DM Sans';min-width:0}
+.past-value label{display:flex;align-items:center;gap:8px;font-size:12px}
+.daily-progress-head{margin-top:28px}
+.daily-day-tabs{gap:8px;margin:20px 0 26px}
+.daily-day-tab{padding:12px 4px;border-radius:14px;background:rgba(27,38,56,.42)}
+.daily-schedule{gap:20px}
+.daily-task-group{gap:10px}
+.daily-task{padding:15px;border-radius:16px;background:rgba(27,38,56,.38);border-color:rgba(137,149,170,.16)}
+.daily-task-actions button{padding:8px;border-radius:8px}
+.daily-category-chip{padding:9px 11px;border-radius:14px}
+.daily-category-form,.daily-task-form{gap:15px;margin-top:20px}
+.daily-category-form input,.daily-category-form select,.daily-task-form input,.daily-task-form select{height:46px;border-radius:12px}
+.btn,.mini-action{min-height:42px;border-radius:12px}
+.mini-action{padding:9px 12px}
+textarea,.habit-form input,.habit-form select{border-radius:12px}
+.trend-chart{gap:12px;margin:22px 0;min-height:145px}
+.trend-track{height:92px;border-radius:10px}
+.trend-col{gap:8px}
+.topnav>.tabs a{border-radius:11px;transition:background .16s ease,color .16s ease}
+.topnav>.tabs a:focus-visible,.btn:focus-visible,.mini-action:focus-visible,.habit-check:focus-visible,.daily-day-tab:focus-visible{
+  outline:2px solid var(--blue);outline-offset:3px
+}
+button,input,select,textarea{font-family:'DM Sans',system-ui,sans-serif}
+@media(max-width:620px){
+  .wrap{padding:22px 14px 52px}
+  .wrap>.card,.wrap>.hero-card{margin-bottom:16px}
+  .card{padding:19px;border-radius:19px}
+  .hero-card{padding:22px}
+  .dashboard-head{gap:14px;align-items:center}
+  .dashboard-head h1,.daily-page h1{font-size:clamp(1.65rem,7vw,1.95rem)}
+  .hero-caption{font-size:12px}
+  .section-head{gap:10px;margin-bottom:15px}
+  .section-head h2{font-size:16px}
+  .habit-list,.daily-schedule,.history-list,.summary-habits,.summary-edit-list{gap:10px}
+  .habit-row{padding:13px;gap:10px;border-radius:15px}
+  .habit-info strong{font-size:13px}
+  .habit-actions{grid-column:2/-1;gap:4px;margin-top:0}
+  .habit-actions button{font-size:10px;padding:7px 9px;background:rgba(255,255,255,.025)}
+  .summary-stats{gap:9px;margin:16px 0}
+  .summary-stat{padding:14px}
+  .summary-stat strong{font-size:1.4rem}
+  .summary-habit-card{padding:13px}
+  .summary-edit{padding:13px;gap:10px}
+  .past-value{display:flex;flex-wrap:wrap;align-items:center}
+  .past-value input[type="number"]{width:100%;max-width:180px}
+  .daily-day-tabs{gap:4px;margin:16px 0 22px}
+  .daily-day-tab{padding:10px 1px;border-radius:10px}
+  .daily-task{padding:12px;border-radius:14px}
+  .daily-category-form,.daily-task-form{gap:13px}
+  .trend-chart{gap:5px;margin:18px 0}
+}
+@media(max-width:380px){
+  .wrap{padding-left:11px;padding-right:11px}
+  .card{padding:16px}
+  .hero-card{padding:19px}
+  .habit-row{grid-template-columns:34px minmax(0,1fr) auto;gap:8px}
+  .habit-icon{width:34px;height:34px;border-radius:10px;font-size:16px}
+  .habit-check{width:38px;height:38px}
+  .habit-actions{grid-column:1/-1;justify-content:flex-start;padding-left:42px}
+  .daily-task-actions{grid-column:2}
+}
+@media(prefers-reduced-motion:reduce){
+  .topnav>.tabs a{transition:none}
+}

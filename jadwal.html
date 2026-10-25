@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080d16">
+<title>Jadwal Harian — Readiness</title>
+<link rel="stylesheet" href="Store/style.css?v=20261008-5">
+<link rel="stylesheet" href="Store/enhancements.css?v=daily-tasks-1">
+<link rel="stylesheet" href="Store/ui-polish.css">
+</head>
+<body>
+<div class="app-shell">
+<header class="topnav">
+  <a class="brand" href="index.html"><span class="brand-mark">R</span><span>Readiness<small>HABIT SYSTEM</small></span></a>
+  <nav class="tabs" aria-label="Navigasi utama">
+    <a href="index.html"><span class="nav-icon" aria-hidden="true">🏠</span><span class="nav-label">Hari ini</span></a><a href="summary.html"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">Ringkasan</span></a><a href="jadwal.html" class="active" aria-current="page"><span class="nav-icon" aria-hidden="true">🗓️</span><span class="nav-label">Jadwal</span></a><a href="latihan/latihan.html"><span class="nav-icon" aria-hidden="true">🏋️</span><span class="nav-label">Workout</span></a>
+  </nav>
+</header>
+<main class="wrap daily-page">
+  <section class="card daily-hero">
+    <div class="eyebrow">DAILY TASK & HABIT TRACKER</div>
+    <h1>Jadwal harian</h1>
+    <p class="hero-caption">Lihat dan pantau tugas terjadwal untuk setiap hari.</p>
+    <div class="daily-progress-head"><div><strong id="dailySelectedDate">Hari ini</strong><span id="dailyProgressText">0 dari 0 tugas selesai</span></div><strong id="dailyProgressPercent">0%</strong></div>
+    <div class="daily-progress-track" role="progressbar" aria-label="Progres tugas hari terpilih" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="dailyProgressBar"></span></div>
+  </section>
+    <section class="card">
+    <div class="section-head"><div><span class="section-kicker">SUB JADWAL HARIAN</span><h2>Buat kelompok kegiatan</h2></div></div>
+    <p class="muted">Buat kelompok kegiatan untuk hari yang sedang dipilih. Kelompok ini hanya berlaku pada hari tersebut.</p>
+    <form id="dailySubScheduleForm" class="daily-task-form">
+      <label for="dailySubScheduleName">Nama sub jadwal</label>
+      <input id="dailySubScheduleName" name="subScheduleName" type="text" maxlength="50" placeholder="Contoh: Belajar pagi" required>
+      <button class="btn" type="submit">+ Buat kelompok untuk hari ini</button>
+    </form>
+  </section>
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">INPUT SEDERHANA</span><h2>Tambah ke jadwal</h2></div></div>
+    <form id="dailyTaskForm" class="daily-task-form">
+      <label for="dailyTaskSubSchedule">Masukkan ke</label>
+      <select id="dailyTaskSubSchedule" name="subScheduleId"><option value="">Jadwal utama (tanpa sub jadwal)</option></select>
+      <label for="dailyTaskTitle">Nama kegiatan</label>
+      <input id="dailyTaskTitle" name="title" type="text" maxlength="90" placeholder="Contoh: Belajar Matematika" required>
+      <div class="daily-time-inputs">
+        <div><label for="dailyStartTime">Mulai</label><input id="dailyStartTime" name="startTime" type="time" value="16:00" required></div>
+        <div><label for="dailyEndTime">Selesai</label><input id="dailyEndTime" name="endTime" type="time" value="17:00" required></div>
+      </div>
+      <label for="dailyTaskNote">Catatan (opsional)</label>
+      <input id="dailyTaskNote" name="note" type="text" maxlength="240" placeholder="Misalnya: kerjakan halaman 10–15">
+      <button class="btn" type="submit">+ Simpan kegiatan untuk <span id="dailyTaskDayHint">hari ini</span></button>
+      <p id="dailyFormMessage" class="muted" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+  <section class="card">
+    <div class="section-head"><div><span class="section-kicker">PILIH HARI</span><h2>Jadwal mingguan</h2></div></div>
+    <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
+    <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
+  </section>
+  <footer class="footer-note">Data tugas memakai penyimpanan Readiness yang sudah ada. Perubahan lokal dapat masuk antrean sinkronisasi cloud jika akun dan koneksi cloud telah dikonfigurasi.</footer>
+</main>
+</div>
+<script src="Store/store.js?v=20261010-3"></script>
+<script src="Store/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="Store/cloud.js?v=20261010-3"></script>
+<script src="Store/daily-tasks.js?v=daily-tasks-3"></script>
+<script src="Store/daily-tasks-ui.js?v=daily-tasks-3"></script>
+</body>
+</html>
