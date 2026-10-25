@@ -21,7 +21,7 @@
   <section class="card daily-hero">
     <div class="eyebrow">DAILY TASK & HABIT TRACKER</div>
     <h1>Jadwal harian</h1>
-    <p class="hero-caption">Atur kategori utama seperti Platinum Time, lalu susun tugas berbeda untuk setiap hari.</p>
+    <p class="hero-caption">Lihat dan pantau tugas terjadwal untuk setiap hari.</p>
     <div class="daily-progress-head"><div><strong id="dailySelectedDate">Hari ini</strong><span id="dailyProgressText">0 dari 0 tugas selesai</span></div><strong id="dailyProgressPercent">0%</strong></div>
     <div class="daily-progress-track" role="progressbar" aria-label="Progres tugas hari terpilih" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="dailyProgressBar"></span></div>
   </section>
@@ -29,18 +29,6 @@
     <div class="section-head"><div><span class="section-kicker">PILIH HARI</span><h2>Jadwal mingguan</h2></div></div>
     <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
     <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
-  </section>
-  <section class="card">
-    <div class="section-head"><div><span class="section-kicker">TUGAS TERJADWAL</span><h2>Tambah tugas</h2></div></div>
-    <p class="muted">Tugas akan masuk ke hari yang sedang dipilih: <strong id="dailyTaskDayHint">hari ini</strong>. Setiap hari dapat memiliki jadwal berbeda.</p>
-    <form id="dailyTaskForm" class="daily-task-form">
-      <label>Kategori<select id="dailyCategory" required></select><small id="dailyCategoryEmpty" hidden>Tambahkan kategori aktif terlebih dahulu.</small></label>
-      <label>Nama tugas<input id="dailyTaskTitle" maxlength="90" placeholder="Contoh: Belajar coding 30 menit" required></label>
-      <div class="daily-time-row"><label>Mulai<input id="dailyStartTime" type="time" value="04:00" required></label><label>Selesai<input id="dailyEndTime" type="time" value="04:30" required></label></div>
-      <label>Catatan (opsional)<input id="dailyTaskNote" maxlength="240" placeholder="Contoh: latihan JavaScript"></label>
-      <button class="btn btn-primary" id="dailyTaskSubmit" type="submit">＋ Simpan ke jadwal</button>
-    </form>
-    <p id="dailyFormMessage" class="daily-form-message" role="status" aria-live="polite"></p>
   </section>
   <footer class="footer-note">Data tugas memakai penyimpanan Readiness yang sudah ada. Perubahan lokal dapat masuk antrean sinkronisasi cloud jika akun dan koneksi cloud telah dikonfigurasi.</footer>
 </main>
