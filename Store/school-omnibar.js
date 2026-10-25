@@ -29,7 +29,7 @@
       text = text.replace(dayMatch[0], ' ');
     }
     let time = '';
-    const timeMatch = text.match(/\b(?:jam\s*)?([01]?\d|2[0-3])(?:[:.]([0-5]\d))?\b/i);
+    const timeMatch = text.match(/\bjam\s*([01]?\d|2[0-3])(?:[:.]([0-5]\d))?\b/i);
     if (timeMatch && /\bjam\b/i.test(text)) {
       time = pad(Number(timeMatch[1])) + ':' + (timeMatch[2] || '00');
       text = text.replace(timeMatch[0], ' ');
