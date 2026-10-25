@@ -30,28 +30,6 @@
     <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
     <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
   </section>
-  <section class="card daily-quick-card">
-    <div class="section-head"><div><span class="section-kicker">CARA CEPAT</span><h2>Tambah jadwal dari teks</h2></div><span class="badge badge-blue">Batch</span></div>
-    <p class="muted">Satu baris untuk satu tugas. Format: <code>kategori, hari, pelajaran/tugas</code>. Contoh: <code>GoldenTime, Senin, Matematika</code>. Kamu juga bisa menambahkan jam di akhir.</p>
-    <div class="daily-format-example"><code>GoldenTime, Senin, Matematika, 04:00-04:45</code><code>Sekolah, Selasa, Bahasa Indonesia, 07:00-08:00</code><code>Platinum Time, Rabu, Belajar coding</code></div>
-    <label class="daily-bulk-label" for="dailyBulkInput">Daftar jadwal</label>
-    <textarea id="dailyBulkInput" rows="5" placeholder="GoldenTime, Senin, Matematika&#10;GoldenTime, Selasa, Bahasa Inggris&#10;Sekolah, Rabu, Biologi, 07:00-08:00"></textarea>
-    <p class="muted">Jika jam tidak ditulis, otomatis memakai 04:00–04:30. Kategori yang belum ada akan dibuat otomatis.</p>
-    <div class="daily-bulk-actions"><button class="btn btn-secondary" type="button" id="dailyBulkPreviewBtn">Periksa format</button><button class="btn btn-primary" type="button" id="dailyBulkAddBtn" disabled>Tambah semua jadwal</button></div>
-    <div id="dailyBulkPreview" class="daily-bulk-preview" aria-live="polite"></div>
-    <p id="dailyBulkStatus" class="daily-form-message" role="status" aria-live="polite"></p>
-  </section>
-  <section class="card">
-    <div class="section-head"><div><span class="section-kicker">KATEGORI UTAMA</span><h2>Kelola kategori</h2></div></div>
-    <p class="muted">Contoh: Platinum Time, Sekolah, Ibadah, Kesehatan. Menjeda kategori menyembunyikan tugasnya dari jadwal tanpa menghapus data.</p>
-    <div id="dailyCategoryList" class="daily-category-list"></div>
-    <form id="dailyCategoryForm" class="daily-category-form">
-      <label>Nama kategori<input id="dailyNewCategory" maxlength="50" placeholder="Contoh: Platinum Time" required></label>
-      <label>Ikon<input id="dailyCategoryIcon" maxlength="4" value="✦" aria-label="Ikon kategori"></label>
-      <label>Warna<select id="dailyCategoryColor"><option value="#b58cff">Ungu</option><option value="#67e8ad">Hijau</option><option value="#75a9ff">Biru</option><option value="#f5bd68">Amber</option><option value="#63d8e9">Cyan</option></select></label>
-      <button class="btn btn-secondary" type="submit">＋ Tambah kategori</button>
-    </form>
-  </section>
   <section class="card">
     <div class="section-head"><div><span class="section-kicker">TUGAS TERJADWAL</span><h2>Tambah tugas</h2></div></div>
     <p class="muted">Tugas akan masuk ke hari yang sedang dipilih: <strong id="dailyTaskDayHint">hari ini</strong>. Setiap hari dapat memiliki jadwal berbeda.</p>
@@ -73,7 +51,6 @@
 <script src="Store/cloud.js?v=20261010-3"></script>
 <script src="Store/daily-tasks.js?v=daily-tasks-1"></script>
 <script src="Store/daily-tasks-ui.js?v=daily-tasks-1"></script>
-<script src="Store/daily-tasks-quick-add.js?v=quick-add-1"></script>
 <script>
 (() => {
   const selected = document.getElementById('dailyTaskDayHint');
