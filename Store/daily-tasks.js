@@ -7,6 +7,7 @@
   const KEYS = {
     categories: 'readiness:dailyTaskCategories',
     schedules: 'readiness:dailyTaskSchedules',
+    subSchedules: 'readiness:dailyTaskSubSchedules',
     logs: 'readiness:dailyTaskLogs'
   };
   const DAYS = [
@@ -42,6 +43,7 @@
   const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
   const getCategories = () => read(KEYS.categories, []);
   const getSchedules = () => read(KEYS.schedules, []);
+  const getSubSchedules = () => read(KEYS.subSchedules, []);
   const getLogs = () => read(KEYS.logs, {});
 
   function addCategory(name, color = '#67e8ad', icon = '✦') {
@@ -71,6 +73,44 @@
     return next.find(item => item.id === id);
   }
 
+  function addSubSchedule(input = {}) {
+    const name = String(input.name || '').trim();
+    const dayOfWeek = Number(input.dayOfWeek);
+    if (!name) throw new Error('Nama sub jadwal wajib diisi.');
+    if (name.length > 50) throw new Error('Nama sub jadwal maksimal 50 karakter.');
+    if (!Number.isInteger(dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 7) throw new Error('Pilih hari yang valid.');
+    const items = getSubSchedules();
+    if (items.some(item => item.dayOfWeek === dayOfWeek && item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      throw new Error('Sub jadwal dengan nama itu sudah ada pada hari tersebut.');
+    }
+    const item = { id: uid('sub'), name, dayOfWeek, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    write(KEYS.subSchedules, [...items, item]);
+    return item;
+  }
+
+  function updateSubSchedule(id, patch = {}) {
+    const items = getSubSchedules();
+    const current = items.find(item => item.id === id);
+    if (!current) throw new Error('Sub jadwal tidak ditemukan.');
+    const name = patch.name === undefined ? current.name : String(patch.name).trim();
+    if (!name || name.length > 50) throw new Error('Nama sub jadwal harus 1–50 karakter.');
+    if (items.some(item => item.id !== id && item.dayOfWeek === current.dayOfWeek && item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      throw new Error('Nama sub jadwal sudah dipakai pada hari tersebut.');
+    }
+    const next = { ...current, ...patch, name, updatedAt: new Date().toISOString() };
+    write(KEYS.subSchedules, items.map(item => item.id === id ? next : item));
+    return next;
+  }
+
+  function deleteSubSchedule(id) {
+    const items = getSubSchedules();
+    if (!items.some(item => item.id === id)) return false;
+    // Preserve activities by moving them back to the main schedule.
+    write(KEYS.schedules, getSchedules().map(task => task.subScheduleId === id ? { ...task, subScheduleId: null, updatedAt: new Date().toISOString() } : task));
+    write(KEYS.subSchedules, items.filter(item => item.id !== id));
+    return true;
+  }
+
   function addTask(input = {}) {
     const categories = getCategories();
     const category = categories.find(item => item.id === input.categoryId && item.enabled !== false);
@@ -86,10 +126,16 @@
     if (!timePattern.test(startTime) || !timePattern.test(endTime) || endTime <= startTime) {
       throw new Error('Jam selesai harus setelah jam mulai.');
     }
+    const subScheduleId = String(input.subScheduleId || '').trim() || null;
+    if (subScheduleId) {
+      const subSchedule = getSubSchedules().find(item => item.id === subScheduleId);
+      if (!subSchedule || subSchedule.dayOfWeek !== dayOfWeek) throw new Error('Sub jadwal tidak sesuai dengan hari yang dipilih.');
+    }
     const schedules = getSchedules();
     const task = {
       id: uid('task'),
       categoryId: category.id,
+      subScheduleId,
       title,
       dayOfWeek,
       startTime,
@@ -113,6 +159,11 @@
     next.dayOfWeek = Number(next.dayOfWeek);
     if (!next.title || next.title.length > 90) throw new Error('Nama tugas harus 1–90 karakter.');
     if (!getCategories().some(item => item.id === next.categoryId)) throw new Error('Kategori tidak ditemukan.');
+    next.subScheduleId = String(next.subScheduleId || '').trim() || null;
+    if (next.subScheduleId) {
+      const subSchedule = getSubSchedules().find(item => item.id === next.subScheduleId);
+      if (!subSchedule || subSchedule.dayOfWeek !== next.dayOfWeek) throw new Error('Sub jadwal tidak sesuai dengan hari yang dipilih.');
+    }
     if (!Number.isInteger(next.dayOfWeek) || next.dayOfWeek < 1 || next.dayOfWeek > 7) throw new Error('Hari tidak valid.');
     const timePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
     if (!timePattern.test(next.startTime) || !timePattern.test(next.endTime) || next.endTime <= next.startTime) {
@@ -142,7 +193,7 @@
     return getSchedules()
       .filter(item => item.enabled !== false && item.dayOfWeek === dayNum && categories.get(item.categoryId)?.enabled !== false)
       .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.order - b.order)
-      .map(item => ({ ...item, category: categories.get(item.categoryId) || null, completed: dailyLog[item.id]?.completed === true, completedAt: dailyLog[item.id]?.completedAt || null }));
+      .map(item => ({ ...item, category: categories.get(item.categoryId) || null, subSchedule: getSubSchedules().find(sub => sub.id === item.subScheduleId) || null, completed: dailyLog[item.id]?.completed === true, completedAt: dailyLog[item.id]?.completedAt || null }));
   }
 
   function setCompleted(taskId, completed, date = today()) {
@@ -170,7 +221,7 @@
 
   window.DailyTasks = Object.freeze({
     KEYS, DAYS, today, dayNumber, getCategories, getSchedules, getLogs, getState,
-    addCategory, updateCategory, setCategoryEnabled, addTask, updateTask, deleteTask,
+    addCategory, updateCategory, setCategoryEnabled, addSubSchedule, updateSubSchedule, deleteSubSchedule, getSubSchedules, addTask, updateTask, deleteTask,
     getTasksForDay, setCompleted, getProgress
   });
 })();
