@@ -128,5 +128,3 @@ button,input,select,textarea{font-family:'DM Sans',system-ui,sans-serif}
 @media(prefers-reduced-motion:reduce){
   .topnav>.tabs a{transition:none}
 }
-
-.autosave-indicator{display:inline-flex;align-items:center;gap:5px;color:var(--green);font-size:10px;font-weight:700;white-space:nowrap}.autosave-indicator:before{content:'✓';display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(103,232,173,.12)}
