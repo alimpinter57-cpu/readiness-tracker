@@ -26,8 +26,19 @@
     <div class="daily-progress-track" role="progressbar" aria-label="Progres tugas hari terpilih" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="dailyProgressBar"></span></div>
   </section>
     <section class="card">
+    <div class="section-head"><div><span class="section-kicker">SUB JADWAL</span><h2>Buat kelompok kegiatan</h2></div></div>
+    <p class="muted">Contoh: Golden Time atau Platinum Time. Sub jadwal dibuat khusus untuk hari yang sedang dipilih.</p>
+    <form id="dailySubScheduleForm" class="daily-task-form">
+      <label for="dailySubScheduleName">Nama sub jadwal</label>
+      <input id="dailySubScheduleName" name="subScheduleName" type="text" maxlength="50" placeholder="Contoh: Golden Time" required>
+      <button class="btn" type="submit">+ Buat sub jadwal untuk <span id="dailySubScheduleDayHint">hari ini</span></button>
+    </form>
+  </section>
+  <section class="card">
     <div class="section-head"><div><span class="section-kicker">INPUT SEDERHANA</span><h2>Tambah ke jadwal</h2></div></div>
     <form id="dailyTaskForm" class="daily-task-form">
+      <label for="dailyTaskSubSchedule">Masukkan ke</label>
+      <select id="dailyTaskSubSchedule" name="subScheduleId"><option value="">Jadwal utama (tanpa sub jadwal)</option></select>
       <label for="dailyTaskTitle">Nama kegiatan</label>
       <input id="dailyTaskTitle" name="title" type="text" maxlength="90" placeholder="Contoh: Belajar Matematika" required>
       <div class="daily-time-inputs">
