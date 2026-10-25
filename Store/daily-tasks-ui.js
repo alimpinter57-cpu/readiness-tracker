@@ -41,7 +41,6 @@
     const day = api().DAYS.find(item => item.value === selectedDay);
     $('dailySelectedDate').textContent = day.label+' · '+new Date(selectedDate+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long'});
     $('dailyTaskDayHint').textContent = day.label;
-    $('dailySubScheduleDayHint').textContent = day.label;
     renderSubScheduleOptions();
     const tasks = api().getTasksForDay(selectedDay, selectedDate);
     const subSchedules = api().getSubSchedules();
