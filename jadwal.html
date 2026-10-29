@@ -4,10 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#080d16">
-<title>Jadwal Harian — Readiness</title>
+<title>Smart Schedule — Readiness</title>
 <link rel="stylesheet" href="Store/style.css?v=20261008-5">
-<link rel="stylesheet" href="Store/enhancements.css?v=daily-tasks-1">
-<link rel="stylesheet" href="Store/ui-polish.css">
+<link rel="stylesheet" href="Store/enhancements.css?v=smart-schedule-1">
+<link rel="stylesheet" href="Store/ui-polish.css?v=smart-schedule-1">
+<style>
+.smart-schedule{max-width:980px}.ss-hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.ss-kicker{font-size:10px;letter-spacing:.14em;color:var(--green);font-weight:700}.ss-hero h1{font-size:clamp(1.8rem,5vw,2.35rem);letter-spacing:-.045em;margin:7px 0}.ss-hero p{max-width:620px}.ss-date-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:20px}.ss-date-tools input{width:auto;max-width:165px;min-height:40px;padding:8px;border:1px solid var(--line);border-radius:11px;background:#0c1320;color:var(--text);color-scheme:dark}.ss-week-nav{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:17px}.ss-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin-top:12px}.ss-day{min-width:0;border:1px solid var(--line);background:rgba(27,38,56,.42);border-radius:13px;padding:10px 3px;color:var(--muted);display:flex;align-items:center;flex-direction:column;gap:4px;cursor:pointer}.ss-day strong{font-size:18px;color:var(--text)}.ss-day span{font-size:11px}.ss-day small{font-size:9px;min-height:12px}.ss-day.active{border-color:var(--green);background:rgba(103,232,173,.1);color:var(--green)}.ss-day.active strong{color:var(--green)}.ss-progress{margin-top:22px}.ss-progress-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.ss-progress-head strong{font-size:23px}.ss-progress-head span{display:block;font-size:11px;color:var(--muted)}.ss-progress-track{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}.ss-progress-track span{display:block;height:100%;width:0;background:var(--green);transition:width .2s}.ss-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ss-form-grid label{display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--muted);min-width:0}.ss-form-grid input,.ss-form-grid select,.ss-form-grid textarea{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0c1320;color:var(--text);font:13px 'DM Sans',system-ui,sans-serif;color-scheme:dark}.ss-form-grid textarea{resize:vertical;min-height:76px}.ss-form-grid .ss-full{grid-column:1/-1}.ss-category-line{display:flex;gap:8px}.ss-category-line select{flex:1}.ss-category-line button{flex:0 0 auto}.ss-hint{font-size:11px;color:var(--muted);margin:5px 0 0}.ss-form-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}.ss-message{min-height:18px;font-size:12px;color:var(--green);margin:12px 0 0}.ss-item-list{display:grid;gap:10px}.ss-item{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:start;gap:12px;padding:15px;border:1px solid var(--ui-card-border,rgba(137,149,170,.16));border-radius:16px;background:rgba(27,38,56,.38)}.ss-item.is-complete .ss-item-title{text-decoration:line-through;color:var(--muted)}.ss-check{width:28px;height:28px;display:grid;place-items:center;cursor:pointer}.ss-check input{position:absolute;opacity:0;width:1px;height:1px}.ss-check span{display:grid;place-items:center;width:25px;height:25px;border:1px solid var(--line);border-radius:8px;color:transparent;font-size:14px}.ss-check input:checked+span{background:var(--green);border-color:var(--green);color:#07120d}.ss-check input:focus-visible+span{outline:2px solid var(--blue);outline-offset:3px}.ss-item-title{font-size:14px;font-weight:700;overflow-wrap:anywhere}.ss-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;align-items:center;font-size:10px;color:var(--muted)}.ss-category,.ss-kind{padding:3px 7px;border:1px solid var(--line);border-radius:99px}.ss-item-body p{font-size:11px;color:var(--muted);margin:7px 0 0;overflow-wrap:anywhere}.ss-item-side{display:flex;align-items:flex-end;flex-direction:column;gap:11px}.ss-priority{font-size:10px;white-space:nowrap;padding:5px 8px;border-radius:99px;background:rgba(137,149,170,.12);color:var(--muted)}.ss-priority.p-high{background:rgba(255,125,125,.12);color:#ff9999}.ss-priority.p-low{background:rgba(137,149,170,.1);color:#a7b2c4}.ss-actions{display:flex;gap:5px}.ss-actions button{font-size:11px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--text);padding:7px 9px;cursor:pointer}.ss-empty{text-align:center;padding:32px 15px;border:1px dashed var(--line);border-radius:16px}.ss-empty span{font-size:24px;color:var(--green)}.ss-empty strong{display:block;margin:7px 0}.ss-empty p{font-size:12px;color:var(--muted);margin:0}.ss-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.ss-section-head h2{margin:5px 0 0;font-size:18px}.ss-priority-help{font-size:11px;color:var(--muted);margin:10px 0 0}
+@media(max-width:560px){.smart-schedule{padding-left:12px;padding-right:12px}.ss-hero-top{display:block}.ss-week{gap:4px}.ss-day{padding:9px 1px;border-radius:10px}.ss-day span{font-size:10px}.ss-day strong{font-size:16px}.ss-day small{font-size:8px}.ss-form-grid{grid-template-columns:minmax(0,1fr);gap:12px}.ss-form-grid .ss-full{grid-column:1}.ss-item{grid-template-columns:26px minmax(0,1fr);gap:8px;padding:12px}.ss-item-side{grid-column:2;flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap}.ss-progress-head strong{font-size:20px}.ss-date-tools input{flex:1;min-width:130px}.ss-category-line button{padding:8px}.ss-section-head h2{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.ss-progress-track span{transition:none}}
+</style>
 </head>
 <body>
 <div class="app-shell">
@@ -17,53 +22,51 @@
     <a href="index.html"><span class="nav-icon" aria-hidden="true">🏠</span><span class="nav-label">Hari ini</span></a><a href="summary.html"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">Ringkasan</span></a><a href="jadwal.html" class="active" aria-current="page"><span class="nav-icon" aria-hidden="true">🗓️</span><span class="nav-label">Jadwal</span></a><a href="latihan/latihan.html"><span class="nav-icon" aria-hidden="true">🏋️</span><span class="nav-label">Workout</span></a>
   </nav>
 </header>
-<main class="wrap daily-page">
-  <section class="card daily-hero">
-    <div class="eyebrow">DAILY TASK & HABIT TRACKER</div>
-    <h1>Jadwal harian</h1>
-    <p class="hero-caption">Lihat dan pantau tugas terjadwal untuk setiap hari.</p>
-    <div class="daily-progress-head"><div><strong id="dailySelectedDate">Hari ini</strong><span id="dailyProgressText">0 dari 0 tugas selesai</span></div><strong id="dailyProgressPercent">0%</strong></div>
-    <div class="daily-progress-track" role="progressbar" aria-label="Progres tugas hari terpilih" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="dailyProgressBar"></span></div>
-  </section>
-    <section class="card">
-    <div class="section-head"><div><span class="section-kicker">SUB JADWAL HARIAN</span><h2>Buat kelompok kegiatan</h2></div></div>
-    <p class="muted">Buat kelompok kegiatan untuk hari yang sedang dipilih. Kelompok ini hanya berlaku pada hari tersebut.</p>
-    <form id="dailySubScheduleForm" class="daily-task-form">
-      <label for="dailySubScheduleName">Nama sub jadwal</label>
-      <input id="dailySubScheduleName" name="subScheduleName" type="text" maxlength="50" placeholder="Contoh: Belajar pagi" required>
-      <button class="btn" type="submit">+ Buat kelompok untuk hari ini</button>
-    </form>
+<main class="wrap smart-schedule">
+  <section class="card ss-hero">
+    <div class="ss-hero-top"><div><div class="ss-kicker">SMART SCHEDULE</div><h1>Rencanakan yang penting.</h1><p class="hero-caption">Satu tempat untuk jadwal harian, agenda mingguan, dan kegiatan mendadak. Data tersimpan lokal dan bisa mengikuti sinkronisasi Readiness yang sudah tersedia.</p></div></div>
+    <div class="ss-date-tools"><button id="ssToday" class="mini-action" type="button">Hari ini</button><button id="ssPrevWeek" class="mini-action" type="button" aria-label="Minggu sebelumnya">←</button><button id="ssNextWeek" class="mini-action" type="button" aria-label="Minggu berikutnya">→</button><label for="ssDate" class="muted">Pilih tanggal</label><input id="ssDate" type="date"></div>
+    <div id="ssWeek" class="ss-week" role="group" aria-label="Pilih tanggal pada minggu ini"></div>
+    <div class="ss-progress"><div class="ss-progress-head"><div><strong id="ssSelectedLabel">Hari ini</strong><span id="ssProgressText">0 dari 0 kegiatan selesai</span></div><strong id="ssProgressPct">0%</strong></div><div id="ssProgressTrack" class="ss-progress-track" role="progressbar" aria-label="Progres kegiatan" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ssProgressBar"></span></div></div>
   </section>
   <section class="card">
-    <div class="section-head"><div><span class="section-kicker">INPUT SEDERHANA</span><h2>Tambah ke jadwal</h2></div></div>
-    <form id="dailyTaskForm" class="daily-task-form">
-      <label for="dailyTaskSubSchedule">Masukkan ke</label>
-      <select id="dailyTaskSubSchedule" name="subScheduleId"><option value="">Jadwal utama (tanpa sub jadwal)</option></select>
-      <label for="dailyTaskTitle">Nama kegiatan</label>
-      <input id="dailyTaskTitle" name="title" type="text" maxlength="90" placeholder="Contoh: Belajar Matematika" required>
-      <div class="daily-time-inputs">
-        <div><label for="dailyStartTime">Mulai</label><input id="dailyStartTime" name="startTime" type="time" value="16:00" required></div>
-        <div><label for="dailyEndTime">Selesai</label><input id="dailyEndTime" name="endTime" type="time" value="17:00" required></div>
+    <div class="ss-section-head"><div><span class="section-kicker">KELOLA AGENDA</span><h2 id="ssFormTitle">Tambah kegiatan</h2></div></div>
+    <form id="ssForm">
+      <div class="ss-form-grid">
+        <label class="ss-full" for="ssTitle">Nama kegiatan<input id="ssTitle" maxlength="90" placeholder="Contoh: Belajar Matematika" required></label>
+        <label for="ssType">Tipe jadwal<select id="ssType" required><option value="weekly">Berulang setiap minggu</option><option value="once">Sekali pada tanggal tertentu</option></select><span id="ssTypeHint" class="ss-hint">Muncul setiap minggu pada hari yang dipilih.</span></label>
+        <label id="ssDayField" for="ssDay">Hari<select id="ssDay" required><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option><option value="7">Minggu</option></select></label>
+        <label id="ssDateField" for="ssDateInput" hidden>Tanggal khusus<input id="ssDateInput" type="date"><span class="ss-hint">Kegiatan hanya muncul pada tanggal ini.</span></label>
+        <label for="ssStart">Mulai<input id="ssStart" type="time" value="16:00" required></label>
+        <label for="ssEnd">Selesai<input id="ssEnd" type="time" value="17:00" required></label>
+        <label for="ssCategory">Kategori<div class="ss-category-line"><select id="ssCategory" required></select><button id="ssAddCategory" class="mini-action" type="button" title="Tambah kategori">+ Kategori</button></div></label>
+        <label for="ssPriority">Prioritas<select id="ssPriority"><option value="high">Tinggi</option><option value="normal" selected>Normal</option><option value="low">Rendah</option></select></label>
+        <label class="ss-full" for="ssNote">Catatan (opsional)<textarea id="ssNote" maxlength="240" placeholder="Detail singkat agar kamu tahu langkah berikutnya."></textarea></label>
       </div>
-      <label for="dailyTaskNote">Catatan (opsional)</label>
-      <input id="dailyTaskNote" name="note" type="text" maxlength="240" placeholder="Misalnya: kerjakan halaman 10–15">
-      <button class="btn" type="submit">+ Simpan kegiatan untuk <span id="dailyTaskDayHint">hari ini</span></button>
-      <p id="dailyFormMessage" class="muted" role="status" aria-live="polite"></p>
+      <div class="ss-form-actions"><button id="ssSave" class="btn btn-primary" type="submit">Simpan kegiatan</button><button id="ssCancelEdit" class="btn btn-secondary" type="button" hidden>Batal edit</button></div>
+      <p id="ssMessage" class="ss-message" role="status" aria-live="polite"></p>
     </form>
   </section>
   <section class="card">
-    <div class="section-head"><div><span class="section-kicker">PILIH HARI</span><h2>Jadwal mingguan</h2></div></div>
-    <div id="dailyDayTabs" class="daily-day-tabs" role="group" aria-label="Pilih hari"></div>
-    <div id="dailySchedule" class="daily-schedule" aria-live="polite"></div>
+    <div class="ss-section-head"><div><span class="section-kicker">AGENDA</span><h2>Kegiatan pada tanggal ini</h2></div></div>
+    <div id="ssItems" class="ss-item-list" aria-live="polite"></div>
+    <p class="ss-priority-help">Pengingat otomatis di sistem HP belum aktif. Fondasi jadwal sudah menyiapkan tipe kejadian dan waktu untuk tahap notifikasi berikutnya.</p>
   </section>
-  <footer class="footer-note">Data tugas memakai penyimpanan Readiness yang sudah ada. Perubahan lokal dapat masuk antrean sinkronisasi cloud jika akun dan koneksi cloud telah dikonfigurasi.</footer>
+  <footer class="footer-note">Smart Schedule menyimpan data melalui penyimpanan Readiness yang ada. Kegiatan lama dimigrasikan sebagai jadwal mingguan; data lama tidak dihapus. Sinkronisasi cloud tetap bergantung pada konfigurasi dan koneksi.</footer>
 </main>
 </div>
 <script src="Store/store.js?v=20261010-3"></script>
 <script src="Store/supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="Store/cloud.js?v=20261010-3"></script>
-<script src="Store/daily-tasks.js?v=daily-tasks-3"></script>
-<script src="Store/daily-tasks-ui.js?v=daily-tasks-3"></script>
+<script src="Store/smart-schedule.js?v=smart-schedule-1"></script>
+<script src="Store/smart-schedule-ui.js?v=smart-schedule-1"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(error => console.error("[Readiness PWA] Registration failed:", error));
+  }, { once: true });
+}
+</script>
 </body>
 </html>
