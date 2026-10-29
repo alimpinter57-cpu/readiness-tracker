@@ -2,11 +2,10 @@
  * Cache the app shell for offline navigation; keep user data in localStorage.
  * Supabase requests remain network-dependent and are never faked as successful.
  */
-const CACHE_NAME = "readiness-offline-v1";
+const CACHE_NAME = "readiness-offline-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./jadwal.html",
   "./summary.html",
   "./latihan/latihan.html",
   "./manifest.webmanifest",
@@ -20,9 +19,7 @@ const APP_SHELL = [
   "./Store/cloud.js",
   "./Store/home.js",
   "./Store/summary.js",
-  "./Store/latihan.js",
-  "./Store/daily-tasks.js",
-  "./Store/daily-tasks-ui.js"
+  "./Store/latihan.js"
 ];
 
 self.addEventListener("install", event => {
