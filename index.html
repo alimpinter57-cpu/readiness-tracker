@@ -61,4 +61,15 @@
   backdrop.addEventListener('click', () => setOpen(false));
   button.dataset.directBound = '1';
 })();
-</script></body></html>
+</script><script>
+// Register the offline app shell only on secure origins (HTTPS or localhost).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(error => {
+      console.error("[Readiness PWA] Service worker registration failed:", error);
+    });
+  }, { once: true });
+}
+</script>
+</body>
+</html>
